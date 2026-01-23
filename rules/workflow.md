@@ -1,0 +1,155 @@
+# Development Workflow
+
+## Feature Implementation
+
+### Phase 1: Planning
+
+Before writing code:
+
+1. **Clarify Requirements**
+   - What needs to be built?
+   - What are the acceptance criteria?
+   - What are the edge cases?
+
+2. **Break Down Tasks**
+   - Create specific, actionable steps
+   - Identify dependencies
+   - Estimate complexity (High/Medium/Low)
+
+3. **Assess Risks**
+   - Technical challenges
+   - Integration points
+   - Performance concerns
+   - Security considerations
+
+### Phase 2: Test-Driven Development
+
+```
+RED → GREEN → REFACTOR
+```
+
+1. **Define Interfaces** - Types and contracts first
+2. **Write Failing Tests** - Tests should fail initially
+3. **Implement Minimal Code** - Just enough to pass
+4. **Verify Tests Pass** - Run test suite
+5. **Refactor** - Improve code quality
+6. **Check Coverage** - Ensure 80%+ coverage
+
+### Phase 3: Code Review
+
+Self-review before PR:
+
+**Security:**
+- [ ] No hardcoded credentials
+- [ ] Input validation present
+- [ ] No injection vulnerabilities
+
+**Quality:**
+- [ ] Functions < 50 lines
+- [ ] Files < 800 lines
+- [ ] Error handling present
+
+**Best Practices:**
+- [ ] Immutable patterns
+- [ ] Tests included
+- [ ] Documentation updated
+
+### Phase 4: Commit & Deploy
+
+- Follow conventional commits
+- Create comprehensive PR description
+- Request review
+- Address feedback
+- Merge when approved
+
+---
+
+## Task-Specific Workflows
+
+### Bug Fixes
+1. Write test that reproduces the bug
+2. Verify test fails
+3. Implement fix
+4. Verify test passes
+5. Add regression tests
+
+### Refactoring
+1. Ensure existing tests pass
+2. Make incremental changes
+3. Run tests after each change
+4. Commit frequently
+
+### New API Endpoint
+1. Define request/response types
+2. Write integration tests
+3. Implement handler
+4. Add validation
+5. Document in OpenAPI/Swagger
+
+### New Component
+1. Define props interface
+2. Write unit tests
+3. Implement component
+4. Add Storybook story
+5. Document usage
+
+---
+
+## Parallel Execution
+
+For independent tasks, work in parallel:
+
+**Good:**
+```
+Execute simultaneously:
+1. Write tests for feature A
+2. Implement feature B
+3. Update documentation
+```
+
+**Bad:**
+```
+Wait for each task to complete sequentially
+(when they're independent)
+```
+
+---
+
+## Architecture Decisions
+
+For significant decisions, document:
+
+```markdown
+# ADR-001: [Decision Title]
+
+## Context
+Why is this decision needed?
+
+## Decision
+What was decided?
+
+## Consequences
+### Positive
+- Benefit 1
+- Benefit 2
+
+### Negative
+- Drawback 1
+- Drawback 2
+
+## Alternatives Considered
+- Option A: Why rejected
+- Option B: Why rejected
+```
+
+---
+
+## Quick Reference
+
+| Task | Approach |
+|------|----------|
+| New feature | Plan → TDD → Review → Commit |
+| Bug fix | Reproduce → Fix → Verify → Commit |
+| Refactor | Tests → Incremental → Verify |
+| API change | Types → Tests → Implement → Document |
+| Build error | Read → Isolate → Fix → Verify |
