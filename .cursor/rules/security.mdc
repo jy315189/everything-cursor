@@ -1,3 +1,9 @@
+---
+description: Security checklist and guidelines - no hardcoded secrets, input validation, SQL injection prevention
+globs: 
+alwaysApply: true
+---
+
 # Security Guidelines
 
 ## Mandatory Security Checks

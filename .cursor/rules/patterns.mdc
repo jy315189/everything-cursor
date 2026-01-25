@@ -1,0 +1,112 @@
+---
+description: Common design patterns - API response format, repository pattern
+globs: 
+alwaysApply: true
+---
+
+# Design Patterns
+
+## API Response Format
+
+```typescript
+// Success response
+interface SuccessResponse<T> {
+  success: true
+  data: T
+}
+
+// Error response
+interface ErrorResponse {
+  success: false
+  error: string
+  code?: string
+}
+
+type ApiResponse<T> = SuccessResponse<T> | ErrorResponse
+
+// Usage
+function handleRequest<T>(result: Result<T>): ApiResponse<T> {
+  if (result.success) {
+    return { success: true, data: result.data }
+  }
+  return { success: false, error: result.error }
+}
+```
+
+## Repository Pattern
+
+```typescript
+interface Repository<T> {
+  findById(id: string): Promise<T | null>
+  findAll(): Promise<T[]>
+  create(data: Partial<T>): Promise<T>
+  update(id: string, data: Partial<T>): Promise<T>
+  delete(id: string): Promise<void>
+}
+
+class UserRepository implements Repository<User> {
+  async findById(id: string): Promise<User | null> {
+    return prisma.user.findUnique({ where: { id } })
+  }
+  // ... other methods
+}
+```
+
+## Result Pattern
+
+```typescript
+type Result<T, E = string> = 
+  | { success: true; data: T }
+  | { success: false; error: E }
+
+async function fetchUser(id: string): Promise<Result<User>> {
+  try {
+    const user = await db.users.findUnique({ where: { id } })
+    if (!user) {
+      return { success: false, error: 'User not found' }
+    }
+    return { success: true, data: user }
+  } catch (error) {
+    return { success: false, error: 'Database error' }
+  }
+}
+```
+
+## Hook Pattern (React)
+
+```typescript
+function useAsync<T>(asyncFn: () => Promise<T>) {
+  const [state, setState] = useState<{
+    data: T | null
+    loading: boolean
+    error: Error | null
+  }>({ data: null, loading: true, error: null })
+
+  useEffect(() => {
+    asyncFn()
+      .then(data => setState({ data, loading: false, error: null }))
+      .catch(error => setState({ data: null, loading: false, error }))
+  }, [asyncFn])
+
+  return state
+}
+```
+
+## Factory Pattern
+
+```typescript
+interface PaymentProcessor {
+  process(amount: number): Promise<PaymentResult>
+}
+
+function createPaymentProcessor(type: string): PaymentProcessor {
+  switch (type) {
+    case 'stripe':
+      return new StripeProcessor()
+    case 'paypal':
+      return new PayPalProcessor()
+    default:
+      throw new Error(`Unknown payment type: ${type}`)
+  }
+}
+```

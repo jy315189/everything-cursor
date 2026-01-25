@@ -1,0 +1,106 @@
+---
+description: Performance optimization guidelines and caching strategies
+globs: 
+alwaysApply: true
+---
+
+# Performance Guidelines
+
+## General Principles
+
+1. **Measure First** - Profile before optimizing
+2. **Avoid Premature Optimization** - Focus on correctness first
+3. **Cache Strategically** - Cache expensive operations
+4. **Minimize Network Calls** - Batch requests when possible
+
+## React Performance
+
+### Memoization
+
+```typescript
+// Memoize expensive calculations
+const expensiveValue = useMemo(() => {
+  return computeExpensiveValue(items)
+}, [items])
+
+// Memoize callbacks
+const handleClick = useCallback(() => {
+  doSomething(id)
+}, [id])
+
+// Memoize components
+const MemoizedComponent = React.memo(ExpensiveComponent)
+```
+
+### Virtualization
+
+For large lists, use virtualization:
+
+```typescript
+import { FixedSizeList } from 'react-window'
+
+<FixedSizeList
+  height={400}
+  itemCount={items.length}
+  itemSize={50}
+>
+  {({ index, style }) => (
+    <div style={style}>{items[index].name}</div>
+  )}
+</FixedSizeList>
+```
+
+## Database Performance
+
+### Query Optimization
+
+```typescript
+// BAD: N+1 query problem
+const users = await prisma.user.findMany()
+for (const user of users) {
+  const posts = await prisma.post.findMany({ where: { userId: user.id } })
+}
+
+// GOOD: Include related data
+const users = await prisma.user.findMany({
+  include: { posts: true }
+})
+```
+
+### Indexing
+
+```sql
+-- Add indexes for frequently queried columns
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_posts_user_id ON posts(user_id);
+```
+
+## Caching Strategies
+
+### In-Memory Cache
+
+```typescript
+const cache = new Map<string, { data: any; expiry: number }>()
+
+async function getCached<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttlMs: number = 60000
+): Promise<T> {
+  const cached = cache.get(key)
+  if (cached && cached.expiry > Date.now()) {
+    return cached.data
+  }
+  
+  const data = await fetcher()
+  cache.set(key, { data, expiry: Date.now() + ttlMs })
+  return data
+}
+```
+
+## Build Optimization
+
+- Enable code splitting
+- Use dynamic imports for large modules
+- Optimize images and assets
+- Enable gzip/brotli compression

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Cursor hooks configuration - automated checks and actions",
+  "hooks": {
+    "pre-commit": {
+      "description": "Checks to run before committing code",
+      "checks": [
+        {
+          "name": "no-console-log",
+          "description": "Warn about console.log statements in TypeScript/JavaScript files",
+          "pattern": "\\.(ts|tsx|js|jsx)$",
+          "search": "console\\.log",
+          "severity": "warning",
+          "message": "Remove console.log before committing"
+        },
+        {
+          "name": "no-hardcoded-secrets",
+          "description": "Check for hardcoded API keys and secrets",
+          "pattern": "\\.(ts|tsx|js|jsx|json|env)$",
+          "search": "(api[_-]?key|secret|password|token)\\s*[=:]\\s*['\"][^'\"]{8,}['\"]",
+          "severity": "error",
+          "message": "Possible hardcoded secret detected. Use environment variables."
+        },
+        {
+          "name": "no-todo-fixme",
+          "description": "Warn about TODO and FIXME comments",
+          "pattern": "\\.(ts|tsx|js|jsx)$",
+          "search": "(TODO|FIXME):",
+          "severity": "warning",
+          "message": "Unresolved TODO/FIXME comment"
+        }
+      ]
+    },
+    "post-edit": {
+      "description": "Actions after editing files",
+      "actions": [
+        {
+          "name": "lint-check",
+          "description": "Run linter on edited files",
+          "pattern": "\\.(ts|tsx|js|jsx)$",
+          "command": "npx eslint --fix"
+        },
+        {
+          "name": "format-check",
+          "description": "Format edited files",
+          "pattern": "\\.(ts|tsx|js|jsx|json|md)$",
+          "command": "npx prettier --write"
+        }
+      ]
+    },
+    "post-generate": {
+      "description": "Actions after generating new code",
+      "actions": [
+        {
+          "name": "type-check",
+          "description": "Run TypeScript type check",
+          "command": "npx tsc --noEmit"
+        }
+      ]
+    }
+  }
+}
