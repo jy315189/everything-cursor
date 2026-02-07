@@ -32,39 +32,61 @@
 
 ## 快速安装
 
-### 第一步：全局安装（Rules + Skills — 一次安装，所有项目生效）
+### 一键完整安装
 
 ```bash
 git clone https://github.com/jy315189/everything-cursor.git
 cd everything-cursor
 
-# Windows PowerShell
-Copy-Item -Path ".cursor\rules" -Destination "$env:USERPROFILE\.cursor\rules" -Recurse -Force
-Copy-Item -Path ".cursor\skills" -Destination "$env:USERPROFILE\.cursor\skills" -Recurse -Force
+# Windows PowerShell — 交互式菜单
+.\init.ps1
 
-# macOS/Linux
-cp -r .cursor/rules ~/.cursor/rules
-cp -r .cursor/skills ~/.cursor/skills
+# macOS/Linux — 交互式菜单
+chmod +x init.sh && ./init.sh
 ```
 
-### 第二步：每个项目初始化（Agents + Commands — 必须逐项目安装）
+脚本会显示交互式菜单：
 
-> **重要**：Cursor 的 Agents 和 Commands **仅支持项目级别**，不支持全局。必须复制到每个项目的 `.cursor/` 目录中才能使用 `@orchestrator` 等功能。
-
-```powershell
-# 在你的项目根目录下运行初始化脚本
-& "D:\projectse\everything-cursor\init.ps1"
-
-# 强制覆盖已有配置
-& "D:\projectse\everything-cursor\init.ps1" -Force
+```
+[1] Global Install    — 全局安装 Rules + Skills（所有项目生效）
+[2] Project Init      — 项目初始化 Agents + Commands（当前项目）
+[3] Full Setup        — 完整安装（全局 + 当前项目）
+[4] Check Status      — 查看安装状态
 ```
 
-或手动复制：
+### 命令行模式（跳过交互）
 
 ```bash
-cp -r everything-cursor/.cursor/agents 你的项目/.cursor/agents
-cp -r everything-cursor/.cursor/commands 你的项目/.cursor/commands
+# Windows PowerShell
+.\init.ps1 -Global              # 全局安装 Rules + Skills
+.\init.ps1 -Project             # 当前项目初始化 Agents + Commands
+.\init.ps1 -All                 # 完整安装
+.\init.ps1 -All -Force          # 完整安装，覆盖已有配置
+.\init.ps1 -Status              # 查看安装状态
+
+# macOS/Linux
+./init.sh --global
+./init.sh --project
+./init.sh --all
+./init.sh --all --force
+./init.sh --status
 ```
+
+### 新项目快速初始化
+
+全局安装完成后，在任何新项目中运行一条命令即可启用 Agents：
+
+```powershell
+# Windows — 在新项目根目录下执行
+& "D:\projectse\everything-cursor\init.ps1" -Project
+```
+
+```bash
+# macOS/Linux — 在新项目根目录下执行
+/path/to/everything-cursor/init.sh --project
+```
+
+> **为什么需要逐项目安装？** Cursor 的 Agents 和 Commands **仅支持项目级别**，不从全局 `~/.cursor/` 读取。Rules 和 Skills 支持全局。
 
 ### 安装位置说明
 

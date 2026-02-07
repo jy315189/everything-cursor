@@ -1,81 +1,239 @@
-# Everything Cursor — Project Initializer
-# 
-# Usage: Run this script in your project root directory to set up
-# Cursor agents and commands. Rules and skills are already global.
+#Requires -Version 5.1
+# ============================================================================
+# Everything Cursor — One-Click Deploy Script (Windows PowerShell)
+# ============================================================================
 #
-# PowerShell:
-#   & "D:\projectse\everything-cursor\init.ps1"
+# USAGE:
+#   .\init.ps1                    # Interactive mode — choose what to do
+#   .\init.ps1 -Global            # Install rules + skills globally
+#   .\init.ps1 -Project           # Init current project with agents + commands
+#   .\init.ps1 -All               # Both global install + project init
+#   .\init.ps1 -Project -Force    # Overwrite existing project configs
+#   .\init.ps1 -Status            # Check what's installed
 #
-# Or copy this script to your PATH and run from any project:
-#   cursor-init
+# ============================================================================
 
 param(
-    [string]$TargetDir = (Get-Location).Path,
-    [switch]$Force
+    [switch]$Global,
+    [switch]$Project,
+    [switch]$All,
+    [switch]$Force,
+    [switch]$Status,
+    [string]$TargetDir = (Get-Location).Path
 )
 
+$ErrorActionPreference = "Stop"
 $SourceDir = $PSScriptRoot
+$GlobalDir = "$env:USERPROFILE\.cursor"
 
-Write-Host ""
-Write-Host "Everything Cursor — Project Initializer" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "Source:  $SourceDir\.cursor" -ForegroundColor Gray
-Write-Host "Target:  $TargetDir\.cursor" -ForegroundColor Gray
-Write-Host ""
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
-# Check source exists
-if (-not (Test-Path "$SourceDir\.cursor\agents")) {
-    Write-Host "ERROR: Source directory not found. Run from everything-cursor repo." -ForegroundColor Red
-    exit 1
+function Write-Banner {
+    Write-Host ""
+    Write-Host "  Everything Cursor — Deploy Script" -ForegroundColor Cyan
+    Write-Host "  ==================================" -ForegroundColor Cyan
+    Write-Host ""
 }
 
-# Create .cursor directory if it doesn't exist
-if (-not (Test-Path "$TargetDir\.cursor")) {
-    New-Item -ItemType Directory -Path "$TargetDir\.cursor" -Force | Out-Null
-    Write-Host "[Created] .cursor/" -ForegroundColor Green
+function Write-Ok { param([string]$Msg) Write-Host "  [OK]      $Msg" -ForegroundColor Green }
+function Write-Skip { param([string]$Msg) Write-Host "  [SKIP]    $Msg" -ForegroundColor Yellow }
+function Write-Fail { param([string]$Msg) Write-Host "  [ERROR]   $Msg" -ForegroundColor Red }
+function Write-Info { param([string]$Msg) Write-Host "  [INFO]    $Msg" -ForegroundColor Gray }
+
+function Copy-Module {
+    param(
+        [string]$Name,
+        [string]$Src,
+        [string]$Dst,
+        [bool]$IsForce
+    )
+    if (-not (Test-Path $Src)) {
+        Write-Fail "$Name source not found: $Src"
+        return $false
+    }
+    if ((Test-Path $Dst) -and -not $IsForce) {
+        $count = (Get-ChildItem $Dst -File -Recurse).Count
+        Write-Skip "$Name already exists ($count files). Use -Force to overwrite."
+        return $true
+    }
+    if (Test-Path $Dst) { Remove-Item $Dst -Recurse -Force }
+    Copy-Item -Path $Src -Destination $Dst -Recurse -Force
+    $count = (Get-ChildItem $Dst -File -Recurse).Count
+    Write-Ok "$Name installed ($count files)"
+    return $true
 }
 
-# Copy agents (required — not supported globally)
-if ((Test-Path "$TargetDir\.cursor\agents") -and -not $Force) {
-    Write-Host "[Skipped] agents/ already exists (use -Force to overwrite)" -ForegroundColor Yellow
-} else {
-    Copy-Item -Path "$SourceDir\.cursor\agents" -Destination "$TargetDir\.cursor\agents" -Recurse -Force
-    $agentCount = (Get-ChildItem "$TargetDir\.cursor\agents\*.md").Count
-    Write-Host "[Copied]  agents/ ($agentCount agents including orchestrator)" -ForegroundColor Green
+# ── Source Validation ────────────────────────────────────────────────────────
+
+function Test-Source {
+    if (-not (Test-Path "$SourceDir\.cursor")) {
+        Write-Fail "Source .cursor/ not found at $SourceDir"
+        Write-Host "  Make sure you run this script from the everything-cursor repo." -ForegroundColor Red
+        return $false
+    }
+    return $true
 }
 
-# Copy commands (required — not supported globally)
-if ((Test-Path "$TargetDir\.cursor\commands") -and -not $Force) {
-    Write-Host "[Skipped] commands/ already exists (use -Force to overwrite)" -ForegroundColor Yellow
-} else {
-    Copy-Item -Path "$SourceDir\.cursor\commands" -Destination "$TargetDir\.cursor\commands" -Recurse -Force
-    $cmdCount = (Get-ChildItem "$TargetDir\.cursor\commands\*.md").Count
-    Write-Host "[Copied]  commands/ ($cmdCount commands)" -ForegroundColor Green
+# ── Status Check ─────────────────────────────────────────────────────────────
+
+function Show-Status {
+    Write-Host ""
+    Write-Host "  Installation Status" -ForegroundColor Cyan
+    Write-Host "  -------------------" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Global ($GlobalDir):" -ForegroundColor White
+
+    $modules = @(
+        @{ Name = "Rules";  Path = "$GlobalDir\rules";  Glob = "*.mdc" },
+        @{ Name = "Skills"; Path = "$GlobalDir\skills";  Glob = "SKILL.md" }
+    )
+    foreach ($m in $modules) {
+        if (Test-Path $m.Path) {
+            $count = (Get-ChildItem $m.Path -Filter $m.Glob -Recurse).Count
+            Write-Ok "$($m.Name): $count files"
+        } else {
+            Write-Fail "$($m.Name): not installed"
+        }
+    }
+
+    # Check if agents were mistakenly installed globally
+    if (Test-Path "$GlobalDir\agents") {
+        $count = (Get-ChildItem "$GlobalDir\agents" -Filter "*.md").Count
+        Write-Info "Agents: $count files (global — NOTE: Cursor only reads agents per-project)"
+    }
+
+    Write-Host ""
+    Write-Host "  Current Project ($TargetDir):" -ForegroundColor White
+
+    $projModules = @(
+        @{ Name = "Agents";   Path = "$TargetDir\.cursor\agents";   Glob = "*.md" },
+        @{ Name = "Commands"; Path = "$TargetDir\.cursor\commands";  Glob = "*.md" },
+        @{ Name = "Hooks";    Path = "$TargetDir\.cursor\hooks";     Glob = "*" },
+        @{ Name = "MCP";      Path = "$TargetDir\.cursor\mcp.json";  Glob = $null }
+    )
+    foreach ($m in $projModules) {
+        if ($m.Glob -eq $null) {
+            if (Test-Path $m.Path) { Write-Ok "$($m.Name): configured" }
+            else { Write-Fail "$($m.Name): not configured" }
+        } else {
+            if (Test-Path $m.Path) {
+                $count = (Get-ChildItem $m.Path -Filter $m.Glob -Recurse -File).Count
+                Write-Ok "$($m.Name): $count files"
+            } else {
+                Write-Fail "$($m.Name): not installed"
+            }
+        }
+    }
+    Write-Host ""
 }
 
-# Copy hooks (optional)
-if ((Test-Path "$TargetDir\.cursor\hooks") -and -not $Force) {
-    Write-Host "[Skipped] hooks/ already exists (use -Force to overwrite)" -ForegroundColor Yellow
-} else {
-    Copy-Item -Path "$SourceDir\.cursor\hooks" -Destination "$TargetDir\.cursor\hooks" -Recurse -Force
-    Write-Host "[Copied]  hooks/" -ForegroundColor Green
+# ── Global Install ───────────────────────────────────────────────────────────
+
+function Install-Global {
+    Write-Host "  Global Install -> $GlobalDir" -ForegroundColor White
+    Write-Host ""
+
+    if (-not (Test-Path $GlobalDir)) {
+        New-Item -ItemType Directory -Path $GlobalDir -Force | Out-Null
+    }
+
+    Copy-Module -Name "Rules" -Src "$SourceDir\.cursor\rules" -Dst "$GlobalDir\rules" -IsForce $Force.IsPresent
+    Copy-Module -Name "Skills" -Src "$SourceDir\.cursor\skills" -Dst "$GlobalDir\skills" -IsForce $Force.IsPresent
+
+    Write-Host ""
+    Write-Ok "Global install complete. Rules + Skills apply to ALL projects."
 }
 
-# Copy MCP config (optional — only if not exists)
-if (-not (Test-Path "$TargetDir\.cursor\mcp.json")) {
-    Copy-Item -Path "$SourceDir\.cursor\mcp.json" -Destination "$TargetDir\.cursor\mcp.json" -Force
-    Write-Host "[Copied]  mcp.json" -ForegroundColor Green
-} else {
-    Write-Host "[Skipped] mcp.json already exists" -ForegroundColor Yellow
+# ── Project Init ─────────────────────────────────────────────────────────────
+
+function Install-Project {
+    Write-Host "  Project Init -> $TargetDir\.cursor" -ForegroundColor White
+    Write-Host ""
+
+    if (-not (Test-Path "$TargetDir\.cursor")) {
+        New-Item -ItemType Directory -Path "$TargetDir\.cursor" -Force | Out-Null
+    }
+
+    Copy-Module -Name "Agents" -Src "$SourceDir\.cursor\agents" -Dst "$TargetDir\.cursor\agents" -IsForce $Force.IsPresent
+    Copy-Module -Name "Commands" -Src "$SourceDir\.cursor\commands" -Dst "$TargetDir\.cursor\commands" -IsForce $Force.IsPresent
+    Copy-Module -Name "Hooks" -Src "$SourceDir\.cursor\hooks" -Dst "$TargetDir\.cursor\hooks" -IsForce $Force.IsPresent
+
+    # MCP: only copy if not exists (never overwrite without -Force)
+    if (-not (Test-Path "$TargetDir\.cursor\mcp.json")) {
+        Copy-Item -Path "$SourceDir\.cursor\mcp.json" -Destination "$TargetDir\.cursor\mcp.json" -Force
+        Write-Ok "MCP config installed"
+    } elseif ($Force.IsPresent) {
+        Copy-Item -Path "$SourceDir\.cursor\mcp.json" -Destination "$TargetDir\.cursor\mcp.json" -Force
+        Write-Ok "MCP config overwritten"
+    } else {
+        Write-Skip "MCP config already exists. Use -Force to overwrite."
+    }
+
+    Write-Host ""
+    Write-Ok "Project init complete. @orchestrator and /commands are now available."
 }
 
-Write-Host ""
-Write-Host "Done! Your project now has:" -ForegroundColor Green
-Write-Host "  - Agents (project-level, including orchestrator)" -ForegroundColor White
-Write-Host "  - Commands (/tdd, /plan, /code-review, etc.)" -ForegroundColor White
-Write-Host "  - Hooks (quality check definitions)" -ForegroundColor White
-Write-Host ""
-Write-Host "Rules and Skills are already active globally." -ForegroundColor Gray
-Write-Host "Use @orchestrator for complex tasks, or just talk naturally." -ForegroundColor Gray
-Write-Host ""
+# ── Interactive Mode ─────────────────────────────────────────────────────────
+
+function Show-Menu {
+    Write-Host "  What would you like to do?" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  [1] Global Install    — Rules + Skills for all projects" -ForegroundColor White
+    Write-Host "  [2] Project Init      — Agents + Commands for this project" -ForegroundColor White
+    Write-Host "  [3] Full Setup        — Both global + project" -ForegroundColor White
+    Write-Host "  [4] Check Status      — See what's installed" -ForegroundColor White
+    Write-Host "  [0] Exit" -ForegroundColor Gray
+    Write-Host ""
+    $choice = Read-Host "  Enter choice (0-4)"
+    return $choice
+}
+
+# ── Main ─────────────────────────────────────────────────────────────────────
+
+Write-Banner
+
+if (-not (Test-Source)) { exit 1 }
+
+if ($Status) {
+    Show-Status
+    exit 0
+}
+
+if ($All) {
+    Install-Global
+    Write-Host ""
+    Install-Project
+    Write-Host ""
+    Show-Status
+    exit 0
+}
+
+if ($Global) {
+    Install-Global
+    exit 0
+}
+
+if ($Project) {
+    Install-Project
+    exit 0
+}
+
+# Interactive mode if no flags provided
+while ($true) {
+    $choice = Show-Menu
+    Write-Host ""
+    switch ($choice) {
+        "1" { Install-Global; Write-Host "" }
+        "2" { Install-Project; Write-Host "" }
+        "3" {
+            Install-Global
+            Write-Host ""
+            Install-Project
+            Write-Host ""
+            Show-Status
+        }
+        "4" { Show-Status }
+        "0" { Write-Host "  Bye!" -ForegroundColor Gray; Write-Host ""; exit 0 }
+        default { Write-Host "  Invalid choice. Try again." -ForegroundColor Red; Write-Host "" }
+    }
+}

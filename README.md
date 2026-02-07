@@ -32,40 +32,61 @@ Based on [everything-claude-code](https://github.com/affaan-m/everything-claude-
 
 ## Quick Start
 
-### Global Install (Rules + Skills — apply to ALL projects)
+### One-Click Full Setup
 
 ```bash
 git clone https://github.com/jy315189/everything-cursor.git
 cd everything-cursor
 
-# Windows PowerShell
-Copy-Item -Path ".cursor\rules" -Destination "$env:USERPROFILE\.cursor\rules" -Recurse -Force
-Copy-Item -Path ".cursor\skills" -Destination "$env:USERPROFILE\.cursor\skills" -Recurse -Force
+# Windows PowerShell — interactive menu
+.\init.ps1
 
-# macOS/Linux
-cp -r .cursor/rules ~/.cursor/rules
-cp -r .cursor/skills ~/.cursor/skills
+# macOS/Linux — interactive menu
+chmod +x init.sh && ./init.sh
 ```
 
-### Per-Project Init (Agents + Commands — required per project)
+The script will show an interactive menu:
 
-> **Important**: Cursor only supports Agents and Commands at the **project level**. They must be copied into each project's `.cursor/` directory.
-
-```powershell
-# Run init script from your project directory
-& "D:\projectse\everything-cursor\init.ps1"
-
-# Or with force-overwrite
-& "D:\projectse\everything-cursor\init.ps1" -Force
+```
+[1] Global Install    — Rules + Skills for all projects
+[2] Project Init      — Agents + Commands for this project
+[3] Full Setup        — Both global + project
+[4] Check Status      — See what's installed
 ```
 
-Or manually:
+### Command-Line Flags (non-interactive)
 
 ```bash
-# Copy agents and commands to your project
-cp -r everything-cursor/.cursor/agents your-project/.cursor/agents
-cp -r everything-cursor/.cursor/commands your-project/.cursor/commands
+# Windows PowerShell
+.\init.ps1 -Global              # Rules + Skills globally
+.\init.ps1 -Project             # Agents + Commands for current project
+.\init.ps1 -All                 # Full setup (global + project)
+.\init.ps1 -All -Force          # Full setup, overwrite existing
+.\init.ps1 -Status              # Check installation status
+
+# macOS/Linux
+./init.sh --global
+./init.sh --project
+./init.sh --all
+./init.sh --all --force
+./init.sh --status
 ```
+
+### Initialize a New Project (quick command)
+
+After global install, run this in any new project to enable agents:
+
+```powershell
+# Windows — from your new project root
+& "D:\projectse\everything-cursor\init.ps1" -Project
+```
+
+```bash
+# macOS/Linux — from your new project root
+/path/to/everything-cursor/init.sh --project
+```
+
+> **Why per-project?** Cursor only reads Agents and Commands from the project's `.cursor/` directory, not from the global `~/.cursor/`. Rules and Skills work globally.
 
 ### What Goes Where
 
