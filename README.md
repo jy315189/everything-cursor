@@ -11,19 +11,23 @@ Based on [everything-claude-code](https://github.com/affaan-m/everything-claude-
 ## Architecture
 
 ```
-.cursor/
-├── rules/         8 rules    Enforced constraints (security, style, testing, git, auto-routing)
-├── agents/       10 agents   Specialized AI roles with CoT reasoning + orchestrator
-├── skills/        5 skills   Deep domain knowledge injection
-├── commands/      8 commands Lightweight slash command triggers
-├── hooks/         4 checks   Quality gate definitions
-├── mcp-configs/   2 presets  External tool integration
-└── mcp.json                  Default MCP configuration
+everything-cursor/
+├── .cursor/
+│   ├── rules/         8 rules    Enforced constraints (security, style, testing, git, auto-routing)
+│   ├── agents/       10 agents   Specialized AI roles with CoT reasoning + orchestrator
+│   ├── skills/        5 skills   Deep domain knowledge injection
+│   ├── commands/      8 commands Lightweight slash command triggers
+│   ├── hooks/         4 checks   Quality gate definitions
+│   ├── mcp-configs/   2 presets  External tool integration
+│   └── mcp.json                  Default MCP configuration
+├── init.ps1                      One-click deploy script (Windows PowerShell)
+├── init.sh                       One-click deploy script (macOS / Linux)
+└── README.md
 ```
 
 ### Design Principles
 
-1. **Layered Context Loading** — Only 4 rules are always-on. Testing, performance, and patterns rules activate based on file globs to save tokens.
+1. **Layered Context Loading** — Only 5 rules are always-on (security, coding-style, git-workflow, workflow, auto-routing). Testing, performance, and patterns rules activate based on file globs to save tokens.
 2. **Separation of Concerns** — Agents = deep role-play with reasoning. Commands = lightweight trigger descriptions. Skills = domain knowledge. Rules = enforced constraints.
 3. **Prompt Engineering Quality** — All agents include: identity, thinking process, constraints, output format, and exit conditions.
 4. **Production Realism** — Hooks are documented with actual integration paths (husky + lint-staged), not just conceptual definitions.
@@ -78,13 +82,15 @@ After global install, run this in any new project to enable agents:
 
 ```powershell
 # Windows — from your new project root
-& "D:\projectse\everything-cursor\init.ps1" -Project
+& "C:\path\to\everything-cursor\init.ps1" -Project
 ```
 
 ```bash
 # macOS/Linux — from your new project root
 /path/to/everything-cursor/init.sh --project
 ```
+
+> **Tip**: Add the everything-cursor directory to your PATH or create an alias for even quicker access.
 
 > **Why per-project?** Cursor only reads Agents and Commands from the project's `.cursor/` directory, not from the global `~/.cursor/`. Rules and Skills work globally.
 

@@ -11,19 +11,23 @@
 ## 架构总览
 
 ```
-.cursor/
-├── rules/         8 条规则    强制约束（安全、代码风格、测试、Git、自动路由）
-├── agents/       10 个智能体  具备思维链推理的专项 AI 角色 + 编排器
-├── skills/        5 项技能    深度领域知识注入
-├── commands/      8 个命令    轻量级 Slash 命令触发器
-├── hooks/         4 项检查    质量门禁定义
-├── mcp-configs/   2 套预设    外部工具集成模板
-└── mcp.json                  默认 MCP 配置
+everything-cursor/
+├── .cursor/
+│   ├── rules/         8 条规则    强制约束（安全、代码风格、测试、Git、自动路由）
+│   ├── agents/       10 个智能体  具备思维链推理的专项 AI 角色 + 编排器
+│   ├── skills/        5 项技能    深度领域知识注入
+│   ├── commands/      8 个命令    轻量级 Slash 命令触发器
+│   ├── hooks/         4 项检查    质量门禁定义
+│   ├── mcp-configs/   2 套预设    外部工具集成模板
+│   └── mcp.json                  默认 MCP 配置
+├── init.ps1                      一键部署脚本（Windows PowerShell）
+├── init.sh                       一键部署脚本（macOS / Linux）
+└── README.md
 ```
 
 ### 设计原则
 
-1. **分层上下文加载** — 仅 4 条规则始终加载。测试、性能、设计模式规则根据文件类型按需激活，节省约 40% Token 开销。
+1. **分层上下文加载** — 5 条规则始终加载（security、coding-style、git-workflow、workflow、auto-routing）。测试、性能、设计模式规则根据文件类型按需激活，节省约 40% Token 开销。
 2. **职责分离** — Agents = 深度角色扮演 + 推理链。Commands = 轻量触发入口。Skills = 领域知识库。Rules = 强制底线。
 3. **专业 Prompt 工程** — 所有 Agent 均包含：身份设定、思维过程（CoT）、约束条件、输出格式约束、退出条件。
 4. **生产可用** — Hooks 提供真实的集成方案（husky + lint-staged），而非仅停留在概念层面。
@@ -78,13 +82,15 @@ chmod +x init.sh && ./init.sh
 
 ```powershell
 # Windows — 在新项目根目录下执行
-& "D:\projectse\everything-cursor\init.ps1" -Project
+& "C:\path\to\everything-cursor\init.ps1" -Project
 ```
 
 ```bash
 # macOS/Linux — 在新项目根目录下执行
 /path/to/everything-cursor/init.sh --project
 ```
+
+> **小技巧**：将 everything-cursor 目录加入系统 PATH，或创建别名（alias），可以更快速地初始化新项目。
 
 > **为什么需要逐项目安装？** Cursor 的 Agents 和 Commands **仅支持项目级别**，不从全局 `~/.cursor/` 读取。Rules 和 Skills 支持全局。
 
