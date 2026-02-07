@@ -12,8 +12,8 @@
 
 ```
 .cursor/
-├── rules/         7 条规则    强制约束（安全、代码风格、测试、Git）
-├── agents/        9 个智能体  具备思维链推理的专项 AI 角色
+├── rules/         8 条规则    强制约束（安全、代码风格、测试、Git、自动路由）
+├── agents/       10 个智能体  具备思维链推理的专项 AI 角色 + 编排器
 ├── skills/        5 项技能    深度领域知识注入
 ├── commands/      8 个命令    轻量级 Slash 命令触发器
 ├── hooks/         4 项检查    质量门禁定义
@@ -66,6 +66,7 @@ cp -r everything-cursor/.cursor/skills 你的项目/.cursor/skills
 | `coding-style.mdc` | **始终加载** | 不可变性、文件 ≤800 行、函数 ≤50 行、禁止 any |
 | `git-workflow.mdc` | **始终加载** | Conventional Commits、PR 流程 |
 | `workflow.mdc` | **始终加载** | 标准开发流程（规划 → TDD → 审查 → PR） |
+| `auto-routing.mdc` | **始终加载** | 自动任务识别 — 根据用户请求自动路由到对应的 Agent 工作流 |
 | `testing.mdc` | **按文件激活** | TDD 流程、覆盖率目标 — 仅在 `*.test.*`、`*.spec.*` 文件中加载 |
 | `performance.mdc` | **按文件激活** | 性能优化规则 — 仅在缓存/查询/加载器文件中加载 |
 | `patterns.mdc` | **按文件激活** | 设计模式 — 仅在 services/api/repositories 目录中加载 |
@@ -86,6 +87,7 @@ cp -r everything-cursor/.cursor/skills 你的项目/.cursor/skills
 
 | 智能体 | 角色 | 核心能力 |
 |--------|------|---------|
+| `orchestrator` | **AI 项目经理** | **自动分析任务类型，调度专项 Agent，协调多阶段工作流** |
 | `planner` | 任务规划师 | 需求分析、任务分解、风险评估、依赖映射 |
 | `architect` | 系统架构师 | 多方案对比、技术选型、权衡文档化 |
 | `tdd-guide` | TDD 教练 | 逐步引导 RED → GREEN → REFACTOR 循环 |
@@ -95,6 +97,20 @@ cp -r everything-cursor/.cursor/skills 你的项目/.cursor/skills
 | `e2e-runner` | E2E 测试专家 | Playwright 测试生成，内置反脆弱性模式 |
 | `refactor-cleaner` | 清理专家 | 安全验证后才删除，小批量逐步清理 |
 | `doc-updater` | 文档专家 | 代码变更后同步更新 JSDoc/README/CHANGELOG |
+
+#### Orchestrator — 自动工作流编排
+
+`orchestrator` 是一个 AI 项目经理。它分析你的请求，自动选择合适的 Agent 组合，按最优顺序执行多阶段工作流：
+
+| 你的请求 | Orchestrator 自动执行 |
+|---------|---------------------|
+| "帮我加一个支付功能" | Planner → Architect → TDD Guide → Code Reviewer → Doc Updater |
+| "这个接口有 bug" | TDD（复现）→ 修复 → Code Reviewer |
+| "构建失败了，报 TS2339" | Build Error Resolver → 修复 → 验证构建 |
+| "检查这个 API 的安全性" | Security Reviewer → 修复漏洞 → Code Reviewer |
+| "清理废代码" | Refactor Cleaner → Code Reviewer |
+
+**使用方式**：复杂多步骤任务用 `@orchestrator`。简单任务直接正常说话即可 — `auto-routing` 规则会自动识别并匹配工作流。
 
 ---
 

@@ -12,8 +12,8 @@ Based on [everything-claude-code](https://github.com/affaan-m/everything-claude-
 
 ```
 .cursor/
-├── rules/         7 rules    Enforced constraints (security, style, testing, git)
-├── agents/        9 agents   Specialized AI roles with CoT reasoning
+├── rules/         8 rules    Enforced constraints (security, style, testing, git, auto-routing)
+├── agents/       10 agents   Specialized AI roles with CoT reasoning + orchestrator
 ├── skills/        5 skills   Deep domain knowledge injection
 ├── commands/      8 commands Lightweight slash command triggers
 ├── hooks/         4 checks   Quality gate definitions
@@ -63,11 +63,12 @@ Enforced constraints the AI must follow. Uses Cursor's `.mdc` format with YAML f
 | `coding-style.mdc` | **Always on** | Immutability, file limits, naming, no `any` |
 | `git-workflow.mdc` | **Always on** | Conventional commits, PR process |
 | `workflow.mdc` | **Always on** | Standard development process (plan → TDD → review → PR) |
+| `auto-routing.mdc` | **Always on** | Automatic task detection — routes user requests to the correct agent workflow |
 | `testing.mdc` | **Glob: test files** | TDD workflow, coverage targets — only loads for `*.test.*`, `*.spec.*` |
 | `performance.mdc` | **Glob: perf-sensitive** | Optimization rules — only loads for cache/query/loader files |
 | `patterns.mdc` | **Glob: services/api** | Design patterns — only loads for service/API/repository files |
 
-> **Token savings**: By glob-targeting 3 of 7 rules, context overhead is reduced by ~40% for non-test, non-API work.
+> **Token savings**: By glob-targeting 3 of 8 rules, context overhead is reduced by ~40% for non-test, non-API work.
 
 ### Agents (`.cursor/agents/`)
 
@@ -75,6 +76,7 @@ Specialized AI roles with structured prompt engineering: identity, thinking proc
 
 | Agent | Role | Key Feature |
 |-------|------|-------------|
+| `orchestrator` | **AI Project Manager** | **Auto-delegates to specialized agents based on task type. Coordinates multi-phase workflows.** |
 | `planner` | Task decomposition & planning | Risk assessment, dependency mapping |
 | `architect` | System design decisions | Multi-option comparison with trade-offs |
 | `tdd-guide` | TDD cycle coaching | Step-by-step RED → GREEN → REFACTOR |
@@ -84,6 +86,20 @@ Specialized AI roles with structured prompt engineering: identity, thinking proc
 | `e2e-runner` | Playwright E2E tests | Anti-flakiness patterns built in |
 | `refactor-cleaner` | Dead code removal | Safety verification before removal |
 | `doc-updater` | Documentation sync | Keeps docs in sync with code changes |
+
+#### Orchestrator — Automatic Workflow Coordination
+
+The `orchestrator` agent acts as an AI project manager. It analyzes your request, selects the right agents, and executes multi-phase workflows automatically:
+
+| Your Request | Orchestrator Executes |
+|-------------|----------------------|
+| "Add a payment feature" | Planner → Architect → TDD Guide → Code Reviewer → Doc Updater |
+| "Fix this bug" | TDD (reproduce) → Fix → Code Reviewer |
+| "Build failed with TS2339" | Build Error Resolver → Fix → Verify |
+| "Check security of /api/" | Security Reviewer → Remediate → Code Reviewer |
+| "Clean up dead code" | Refactor Cleaner → Code Reviewer |
+
+**Usage**: `@orchestrator` for complex multi-step tasks. For simple tasks, the `auto-routing` rule handles it automatically — just talk naturally.
 
 ### Skills (`.cursor/skills/`)
 
