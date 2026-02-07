@@ -1,323 +1,181 @@
 # Everything Cursor - 中文说明
 
-**Cursor AI 完整配置集合 - 规则、技能、智能体、命令、钩子和 MCP 配置**
+**生产级 Cursor AI 配置集合 — 规则、技能、智能体、命令、钩子和 MCP 配置**
 
-基于 [everything-claude-code](https://github.com/affaan-m/everything-claude-code) 项目改编，适用于 Cursor IDE。
+一套完整的、可复用的配置模板，将专业软件工程实践注入 Cursor IDE 的 AI 辅助开发流程。
 
----
-
-## 项目用途
-
-这是一套**可复用的 Cursor AI 配置模板**，包含：
-
-- ✅ **Rules（规则）** - AI 必须遵守的编码规范和安全准则
-- ✅ **Skills（技能）** - 领域知识和工作流定义
-- ✅ **Agents（智能体）** - 专项任务的子代理
-- ✅ **Commands（命令）** - 快捷 Slash 命令
-- ✅ **Hooks（钩子）** - 自动化检查和操作
-- ✅ **MCP Configs** - 外部工具集成配置
+基于 [everything-claude-code](https://github.com/affaan-m/everything-claude-code) 改编并深度优化。
 
 ---
 
-## 可以复用吗？
+## 架构总览
 
-**是的，完全可以复用到任何项目中！** 
+```
+.cursor/
+├── rules/         7 条规则    强制约束（安全、代码风格、测试、Git）
+├── agents/        9 个智能体  具备思维链推理的专项 AI 角色
+├── skills/        5 项技能    深度领域知识注入
+├── commands/      8 个命令    轻量级 Slash 命令触发器
+├── hooks/         4 项检查    质量门禁定义
+├── mcp-configs/   2 套预设    外部工具集成模板
+└── mcp.json                  默认 MCP 配置
+```
 
-这些配置是通用的开发最佳实践，适用于：
+### 设计原则
 
-| 项目类型 | 适用性 |
-|---------|--------|
-| React/Next.js 前端项目 | ✅ 完全适用 |
-| Node.js 后端项目 | ✅ 完全适用 |
-| TypeScript 项目 | ✅ 完全适用 |
-| Python 项目 | ⚠️ 部分适用（规则通用，代码示例需调整） |
-| 其他语言项目 | ⚠️ 规则和流程通用，代码示例需调整 |
+1. **分层上下文加载** — 仅 4 条规则始终加载。测试、性能、设计模式规则根据文件类型按需激活，节省约 40% Token 开销。
+2. **职责分离** — Agents = 深度角色扮演 + 推理链。Commands = 轻量触发入口。Skills = 领域知识库。Rules = 强制底线。
+3. **专业 Prompt 工程** — 所有 Agent 均包含：身份设定、思维过程（CoT）、约束条件、输出格式约束、退出条件。
+4. **生产可用** — Hooks 提供真实的集成方案（husky + lint-staged），而非仅停留在概念层面。
 
 ---
 
 ## 快速安装
 
-### 方法一：复制到项目（推荐）
+### 完整复制到项目
 
 ```bash
-# 克隆配置仓库
 git clone https://github.com/YOUR_USERNAME/everything-cursor.git
-
-# 复制 .cursor 目录到你的项目
 cp -r everything-cursor/.cursor 你的项目路径/.cursor
 ```
 
-### 方法二：全局安装
+### 按需复制
 
 ```bash
-# Windows (PowerShell)
-xcopy everything-cursor\.cursor $env:USERPROFILE\.cursor /E /I
-
-# macOS/Linux
-cp -r everything-cursor/.cursor ~/.cursor
-```
-
-### 方法三：按需复制
-
-只复制你需要的部分：
-
-```bash
-# 只复制规则
+# 只要规则（始终生效的编码规范）
 cp -r everything-cursor/.cursor/rules 你的项目/.cursor/rules
 
-# 只复制技能
+# 只要智能体（专项 AI 助手）
+cp -r everything-cursor/.cursor/agents 你的项目/.cursor/agents
+
+# 只要技能（深度领域知识）
 cp -r everything-cursor/.cursor/skills 你的项目/.cursor/skills
-
-# 只复制命令
-cp -r everything-cursor/.cursor/commands 你的项目/.cursor/commands
 ```
 
 ---
 
-## 目录结构
+## 六大模块详解
 
-```
-.cursor/
-├── agents/               # 专项智能体（9个）
-│   ├── planner.md           # 功能规划和任务分解
-│   ├── architect.md         # 系统设计和技术选型
-│   ├── code-reviewer.md     # 代码质量审查
-│   ├── security-reviewer.md # 安全漏洞分析
-│   ├── build-error-resolver.md  # 构建错误修复
-│   ├── e2e-runner.md        # E2E 测试生成
-│   ├── refactor-cleaner.md  # 死代码清理
-│   ├── doc-updater.md       # 文档同步
-│   └── tdd-guide.md         # TDD 工作流指导
-│
-├── skills/               # 技能库（5个）
-│   ├── tdd-workflow/        # 测试驱动开发方法论
-│   ├── coding-standards/    # 代码质量标准
-│   ├── security-review/     # 安全审计清单
-│   ├── backend-patterns/    # 后端模式（API、数据库、缓存）
-│   └── frontend-patterns/   # 前端模式（React、Next.js）
-│
-├── commands/             # Slash 命令（8个）
-│   ├── tdd.md               # /tdd - 测试驱动开发
-│   ├── plan.md              # /plan - 实现规划
-│   ├── e2e.md               # /e2e - E2E 测试生成
-│   ├── code-review.md       # /code-review - 代码审查
-│   ├── build-fix.md         # /build-fix - 修复构建错误
-│   ├── refactor-clean.md    # /refactor-clean - 清理死代码
-│   ├── security-audit.md    # /security-audit - 安全审计
-│   └── doc-sync.md          # /doc-sync - 文档同步
-│
-├── rules/                # 核心规则（7个，.mdc 格式）
-│   ├── security.mdc         # 安全准则
-│   ├── coding-style.mdc     # 代码风格
-│   ├── testing.mdc          # 测试规范
-│   ├── git-workflow.mdc     # Git 工作流
-│   ├── patterns.mdc         # 设计模式
-│   ├── performance.mdc      # 性能优化
-│   └── workflow.mdc         # 开发流程
-│
-├── hooks/                # 自动化钩子
-│   ├── hooks.json           # 钩子配置
-│   └── README.md            # 钩子说明
-│
-├── mcp-configs/          # MCP 配置模板
-│   ├── full-stack.json      # 全栈开发配置
-│   └── minimal.json         # 最小化配置
-│
-└── mcp.json              # 默认 MCP 配置
-```
+### 1. Rules（规则）— 强制约束
+
+使用 Cursor 的 `.mdc` 格式，带 YAML frontmatter 控制加载策略。
+
+| 规则 | 加载策略 | 作用 |
+|------|---------|------|
+| `security.mdc` | **始终加载** | 禁止硬编码密钥、强制输入验证、防注入 |
+| `coding-style.mdc` | **始终加载** | 不可变性、文件 ≤800 行、函数 ≤50 行、禁止 any |
+| `git-workflow.mdc` | **始终加载** | Conventional Commits、PR 流程 |
+| `workflow.mdc` | **始终加载** | 标准开发流程（规划 → TDD → 审查 → PR） |
+| `testing.mdc` | **按文件激活** | TDD 流程、覆盖率目标 — 仅在 `*.test.*`、`*.spec.*` 文件中加载 |
+| `performance.mdc` | **按文件激活** | 性能优化规则 — 仅在缓存/查询/加载器文件中加载 |
+| `patterns.mdc` | **按文件激活** | 设计模式 — 仅在 services/api/repositories 目录中加载 |
+
+> **Token 节省**：3 条规则改为按需加载后，非测试、非 API 场景下上下文开销减少约 40%。
 
 ---
 
-## 六大核心模块详解
+### 2. Agents（智能体）— 专项 AI 角色
 
-### 1. Agents（专项智能体）
+每个 Agent 都经过专业 Prompt 工程设计，包含：
 
-**作用**：将复杂任务委托给专门的子代理处理，实现精细分工。
+- **身份设定**：明确的角色和目标
+- **思维过程**：Chain-of-Thought 推理引导，确保"先想后做"
+- **约束条件**：明确禁止的行为和退出条件
+- **输出格式**：严格的结构化模板，确保输出可预测
+- **升级机制**：知道何时应请求人类介入
 
-| 智能体 | 职责 |
-|--------|------|
-| `planner` | 需求拆解、任务分解、进度规划 |
-| `architect` | 系统设计、技术选型、架构决策 |
-| `code-reviewer` | 代码质量审查、最佳实践检查 |
-| `security-reviewer` | 安全漏洞检测、风险评估 |
-| `build-error-resolver` | 构建错误诊断和修复 |
-| `e2e-runner` | Playwright E2E 测试生成 |
-| `refactor-cleaner` | 死代码识别和清理 |
-| `doc-updater` | 文档同步更新 |
-| `tdd-guide` | TDD 流程指导 |
-
-**使用方式**：在 Cursor 中引用 `@agents/planner` 来调用对应智能体。
-
----
-
-### 2. Skills（技能库）
-
-**作用**：注入领域知识，统一代码风格，让 AI 生成的代码符合指定技术栈的最佳实践。
-
-| 技能 | 内容 |
-|------|------|
-| `tdd-workflow` | RED → GREEN → REFACTOR 测试驱动开发流程 |
-| `coding-standards` | 代码质量标准、命名规范、错误处理 |
-| `security-review` | 安全审计清单、漏洞检测方法 |
-| `backend-patterns` | API 设计、数据库模式、缓存策略、认证授权 |
-| `frontend-patterns` | React 组件模式、状态管理、性能优化 |
-
-**使用方式**：在 Cursor 中引用 `@skills/backend-patterns` 来加载对应技能。
+| 智能体 | 角色 | 核心能力 |
+|--------|------|---------|
+| `planner` | 任务规划师 | 需求分析、任务分解、风险评估、依赖映射 |
+| `architect` | 系统架构师 | 多方案对比、技术选型、权衡文档化 |
+| `tdd-guide` | TDD 教练 | 逐步引导 RED → GREEN → REFACTOR 循环 |
+| `code-reviewer` | 代码审查员 | 按严重级别分类、每个问题附带修复建议 |
+| `security-reviewer` | 安全工程师 | OWASP Top 10 检查、攻击场景分析、修复方案 |
+| `build-error-resolver` | 构建专家 | 系统化诊断而非猜测，分类定位根因 |
+| `e2e-runner` | E2E 测试专家 | Playwright 测试生成，内置反脆弱性模式 |
+| `refactor-cleaner` | 清理专家 | 安全验证后才删除，小批量逐步清理 |
+| `doc-updater` | 文档专家 | 代码变更后同步更新 JSDoc/README/CHANGELOG |
 
 ---
 
-### 3. Commands（快捷指令）
+### 3. Skills（技能）— 深度领域知识
 
-**作用**：将复杂流程封装为一键操作，从"对话式编程"升级为"指令式工程流"。
+技能提供的不是 AI 已知的通用建议，而是**深度决策框架、生产级代码模式和反模式**。
 
-| 命令 | 功能 |
-|------|------|
-| `/tdd` | 执行完整 TDD 流程：定义接口 → 写测试 → 实现 → 重构 |
-| `/plan` | 创建详细的实现计划和任务分解 |
-| `/e2e` | 生成 Playwright E2E 测试用例 |
-| `/code-review` | 执行代码质量审查 |
-| `/build-fix` | 诊断并修复构建错误 |
-| `/refactor-clean` | 识别并清理死代码 |
-| `/security-audit` | 执行安全漏洞扫描 |
-| `/doc-sync` | 同步文档与代码变更 |
+| 技能 | 内容深度 |
+|------|---------|
+| `backend-patterns` | 分层架构（Handler→Service→Repository）、API 设计、缓存策略（多级缓存）、错误处理层次、RBAC 权限模型、事件驱动模式 |
+| `coding-standards` | 不可变性规范、命名约定体系、TypeScript 严格模式（零 any 策略）、Result 类型模式、嵌套深度控制、导入组织规则 |
+| `frontend-patterns` | Server/Client 组件决策树、状态管理选择框架、TanStack Query 模式、虚拟化长列表、表单验证模式、无障碍访问清单 |
+| `security-review` | OWASP Top 10 速查、多层输入验证、文件上传安全、密码处理规范、JWT 安全实践、限流实现、安全响应头 |
+| `tdd-workflow` | 完整 TDD 循环（含代码示例）、测试金字塔策略、Mock 工厂模式、反模式清单、Bug 修复 TDD 协议 |
 
 ---
 
-### 4. Rules（核心规则）
+### 4. Commands（命令）— 轻量触发入口
 
-**作用**：AI 必须遵守的底线与红线，不仅是建议，而是强制约束。
+命令是简洁的使用说明，告诉你"什么时候用"和"会发生什么"，然后委派给对应的 Agent 执行。
 
-| 规则 | 要求 |
-|------|------|
-| `security.mdc` | 禁止硬编码密钥、强制输入验证、防止注入攻击 |
-| `coding-style.mdc` | 不可变性、文件 ≤800 行、函数 ≤50 行、无 any 类型 |
-| `testing.mdc` | TDD 流程、80% 测试覆盖率 |
-| `git-workflow.mdc` | Conventional Commits 格式、PR 流程 |
-| `patterns.mdc` | API 响应格式、Repository 模式、Result 模式 |
-| `performance.mdc` | 性能优化、缓存策略、懒加载 |
-| `workflow.mdc` | 开发流程：规划 → TDD → 审查 → 提交 |
-
-**重要**：Rules 文件必须使用 `.mdc` 扩展名并包含 YAML frontmatter 才能被 Cursor 识别。
-
----
-
-### 5. MCP Configs（工具集成）
-
-**作用**：打通工具链，实现 IDE ↔ 代码仓库 ↔ 部署平台 ↔ AI 的无缝交互。
-
-| 服务 | 功能 |
-|------|------|
-| `github` | 直接读取 Issue、提交 PR、仓库操作 |
-| `memory` | 跨会话持久化记忆 |
-| `context7` | 实时文档查询 |
-| `supabase` | 数据库操作 |
-| `vercel` | 部署管理 |
-| `playwright` | 浏览器自动化 |
-
-**注意**：不要同时启用所有 MCP，会占用过多上下文窗口。建议每个项目启用 ≤10 个。
+| 命令 | 场景 | 委派给 |
+|------|------|--------|
+| `/tdd` | 用 TDD 实现功能 | `@agents/tdd-guide` |
+| `/plan` | 创建实现计划 | `@agents/planner` |
+| `/code-review` | 代码质量审查 | `@agents/code-reviewer` |
+| `/security-audit` | 安全漏洞扫描 | `@agents/security-reviewer` |
+| `/build-fix` | 修复构建错误 | `@agents/build-error-resolver` |
+| `/e2e` | 生成 E2E 测试 | `@agents/e2e-runner` |
+| `/refactor-clean` | 清理死代码 | `@agents/refactor-cleaner` |
+| `/doc-sync` | 同步文档 | `@agents/doc-updater` |
 
 ---
 
-### 6. Hooks（自动化钩子）
+### 5. Hooks（钩子）— 质量门禁
 
-**作用**：工程细节的自动守门员，把容易遗漏的检查交给系统自动完成。
+定义质量检查规则，配合 husky + lint-staged 实现真正的自动化执行。
 
-| 钩子 | 触发时机 | 作用 |
-|------|----------|------|
-| `no-console-log` | 提交前 | 检查是否有 console.log 残留 |
-| `no-hardcoded-secrets` | 提交前 | 检测硬编码的密钥 |
-| `lint-check` | 编辑后 | 自动运行 ESLint |
-| `format-check` | 编辑后 | 自动运行 Prettier |
-| `type-check` | 生成后 | 运行 TypeScript 类型检查 |
+| 检查项 | 严重级别 | 检测内容 |
+|--------|---------|---------|
+| `no-console-log` | Warning | 源码中的 `console.log` |
+| `no-hardcoded-secrets` | Error | 代码中硬编码的 API Key / 密码 / Token |
+| `no-ts-ignore` | Error | 隐藏类型错误的 `@ts-ignore` |
+| `no-any-type` | Warning | 显式的 `any` 类型标注 |
+
+> 详见 `hooks/README.md` 了解 husky + lint-staged 的实际集成步骤。
+
+---
+
+### 6. MCP Configs（工具集成）
+
+| 预设 | 包含服务 | 适用场景 |
+|------|---------|---------|
+| `minimal.json` | GitHub、Context7 | 轻量开发 |
+| `full-stack.json` | GitHub、Memory、Context7、Supabase、Vercel、Playwright、Filesystem | 全栈开发 |
+
+> **提示**：建议每个项目启用 ≤10 个 MCP 服务，过多会挤占上下文窗口。
 
 ---
 
 ## 自定义配置
 
-这些配置是起点，你应该根据自己的需求调整：
+这些配置是起点，根据项目需要调整：
 
-### 1. 调整测试覆盖率要求
-
-编辑 `.cursor/rules/testing.mdc`：
-
-```yaml
-# 将 80% 改为你需要的值
-coverage: 70%
-```
-
-### 2. 调整文件大小限制
-
-编辑 `.cursor/rules/coding-style.mdc`：
-
-```yaml
-# 将 800 行改为你需要的值
-max_file_lines: 500
-```
-
-### 3. 添加自定义 Commit 类型
-
-编辑 `.cursor/rules/git-workflow.mdc`：
-
-```markdown
-### 自定义类型
-- `perf`: 性能优化
-- `i18n`: 国际化
-```
-
-### 4. 启用/禁用 MCP 服务器
-
-编辑 `.cursor/mcp.json`：
-
-```json
-{
-  "disabledMcpServers": ["supabase", "vercel"]
-}
-```
+| 调整内容 | 文件位置 | 示例 |
+|---------|---------|------|
+| 测试覆盖率要求 | `rules/testing.mdc` | 将 `≥ 80%` 改为你的目标 |
+| 文件大小限制 | `rules/coding-style.mdc` | 将 `≤ 800 lines` 改为你的限制 |
+| 规则加载策略 | 任何 `.mdc` 的 frontmatter | 修改 `alwaysApply` / `globs` |
+| 增加 Commit 类型 | `rules/git-workflow.mdc` | 添加 `perf:`、`i18n:` 等 |
+| MCP 服务 | `mcp.json` | 启用/禁用特定服务 |
 
 ---
 
-## 使用建议
+## 适用范围
 
-### 适合的用户
-
-| 用户类型 | 推荐使用方式 |
-|----------|-------------|
-| **技术负责人** | 降低 Code Review 成本，提升团队代码基线 |
-| **独立开发者** | 获得成熟工程团队的开发流程 |
-| **AI 编程爱好者** | 将 AI 编程推向生产级应用 |
-
-### Token 消耗提示
-
-⚠️ 这套配置包含了大量上下文规则和知识，会增加 Token 消耗：
-
-- 建议根据项目实际需求，**选择性地加载** Agents 和 Skills
-- 在并发任务中，可以暂时禁用部分重复配置以节省成本
-
----
-
-## 常见问题
-
-### Q: 为什么 Cursor 没有识别我的规则？
-
-**A**: Rules 文件必须满足：
-1. 使用 `.mdc` 扩展名（不是 `.md`）
-2. 文件开头包含 YAML frontmatter：
-
-```yaml
----
-description: 规则描述
-globs: 
-alwaysApply: true
----
-```
-
-### Q: 如何在新项目中使用这些配置？
-
-**A**: 只需将 `.cursor` 目录复制到你的项目根目录即可。
-
-### Q: 可以只使用部分功能吗？
-
-**A**: 完全可以。每个模块都是独立的，你可以只复制需要的目录。
+| 项目类型 | 适用性 | 说明 |
+|---------|--------|------|
+| TypeScript / Next.js / React | 完全适用 | 所有模块直接可用 |
+| Node.js 后端 | 完全适用 | 后端模式和安全规则高度匹配 |
+| Python / Go / 其他语言 | 规则和流程适用 | 代码示例需替换为对应语言 |
 
 ---
 
@@ -333,8 +191,4 @@ alwaysApply: true
 
 ## 许可证
 
-MIT - 自由使用、修改，欢迎贡献回馈。
-
----
-
-**如果这个项目对你有帮助，请给个 Star！用 Cursor 构建伟大的东西！**
+MIT — 自由使用、修改，欢迎贡献。

@@ -1,67 +1,27 @@
-# /security-audit - Security Vulnerability Scan
+# /security-audit — Security Vulnerability Scan
 
-Perform a security audit on the codebase.
+Perform a security audit against OWASP Top 10 categories.
 
-## Usage
+## When to Use
+
+- Before deploying to production
+- After adding authentication, authorization, or data handling code
+- When handling user input, file uploads, or external data
+- Periodic security review
+
+## Input
 
 ```
-/security-audit [file path or scope]
+/security-audit [file path, directory, or scope description]
 ```
 
-## Process
+## What Happens
 
-### Step 1: Scan for Vulnerabilities
-
-Check for common vulnerabilities:
-
-**Authentication:**
-- [ ] Secure password hashing
-- [ ] JWT implementation
-- [ ] Session management
-- [ ] Account lockout
-
-**Input Validation:**
-- [ ] All inputs validated
-- [ ] Schema validation
-- [ ] File upload checks
-
-**Injection:**
-- [ ] SQL injection
-- [ ] NoSQL injection
-- [ ] Command injection
-- [ ] XSS
-
-**Data Protection:**
-- [ ] No hardcoded secrets
-- [ ] Encryption in transit
-- [ ] Sensitive data handling
-
-### Step 2: Assess Severity
-
-| Level | Description | Action |
-|-------|-------------|--------|
-| CRITICAL | Data breach, RCE | Immediate fix |
-| HIGH | SQL injection, XSS | Fix < 24h |
-| MEDIUM | Missing rate limiting | Fix < 1 week |
-| LOW | Minor issues | Next sprint |
-
-### Step 3: Generate Report
-
-```markdown
-## Security Audit Report
-
-### Executive Summary
-[High-level findings]
-
-### Critical Vulnerabilities 🔴
-[Details and fixes]
-
-### High Severity ⚠️
-[Details and fixes]
-
-### Recommendations
-[Security improvements]
-```
+1. **Traces trust boundaries** — Where untrusted data enters
+2. **Checks OWASP Top 10** — Injection, XSS, CSRF, broken auth, etc.
+3. **Scans for secrets** — Hardcoded keys, tokens, credentials
+4. **Classifies severity** — CRITICAL / HIGH / MEDIUM / LOW
+5. **Provides remediation** — Specific code fixes for each finding
 
 ## Example
 
@@ -69,8 +29,4 @@ Check for common vulnerabilities:
 /security-audit src/api/
 ```
 
-Output:
-1. Vulnerability scan results
-2. Severity assessment
-3. Specific remediation steps
-4. Recommendations for improvement
+Delegates to: `@agents/security-reviewer` for threat analysis with severity ratings

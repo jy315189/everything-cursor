@@ -1,0 +1,10 @@
+refactor: comprehensive optimization of all Cursor AI configurations
+
+Skills - CRITICAL FIX: rewrote all 5 SKILL.md files with correct domain knowledge
+Rules - token optimization: 3 rules changed to glob-based loading, saves ~40% context
+Agents - prompt engineering: added CoT reasoning, constraints, output format, exit conditions
+Agents - new orchestrator: AI project manager that auto-delegates to specialized agents
+Commands - differentiated: redesigned as lightweight triggers, no longer duplicating agents
+Hooks - production-ready: honest labeling with real husky + lint-staged integration path
+New auto-routing rule: automatic task detection and workflow routing for all conversations
+Documentation: rewrote both READMEs to reflect optimized architecture

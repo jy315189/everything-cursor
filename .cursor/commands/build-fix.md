@@ -1,77 +1,33 @@
-# /build-fix - Fix Build Errors
+# /build-fix — Fix Build Errors
 
-Diagnose and fix build errors quickly.
+Diagnose and fix build errors, type errors, and dependency issues.
 
-## Usage
+## When to Use
+
+- Build or compilation fails
+- TypeScript type errors you can't resolve
+- Dependency conflicts or missing modules
+- Configuration issues
+
+## Input
 
 ```
-/build-fix [optional: paste error message]
+/build-fix [paste the error message, or describe the problem]
 ```
 
-## Process
+## What Happens
 
-### Step 1: Identify Error
-
-I will read and categorize the error:
-
-| Category | Examples |
-|----------|----------|
-| Type Error | TS2322, TS2339, TS2345 |
-| Module Error | Cannot find module |
-| Syntax Error | Unexpected token |
-| Dependency | Peer dependency issues |
-| Config | Invalid configuration |
-
-### Step 2: Diagnose Root Cause
-
-Analyze:
-- Error message details
-- File and line number
-- Stack trace
-- Related files
-
-### Step 3: Apply Fix
-
-Implement the appropriate fix:
-
-**Type Errors:**
-```typescript
-// Fix type mismatches
-// Add missing properties
-// Correct function signatures
-```
-
-**Module Errors:**
-```bash
-# Install missing packages
-npm install <package-name>
-
-# Fix import paths
-```
-
-**Dependency Errors:**
-```bash
-# Clear and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Step 4: Verify
-
-```bash
-npm run build
-# Confirm error is resolved
-```
+1. **Reads** the full error message and categorizes it
+2. **Identifies** the root cause (not just the symptom)
+3. **Applies** the minimal fix
+4. **Verifies** the build succeeds
+5. **Documents** how to prevent recurrence
 
 ## Example
 
 ```
 /build-fix
-Error: TS2339: Property 'user' does not exist on type 'Session'
+TS2339: Property 'user' does not exist on type 'Session'
 ```
 
-Output:
-1. Error analysis
-2. Root cause explanation
-3. Fix implementation
-4. Verification step
+Delegates to: `@agents/build-error-resolver` for systematic diagnosis

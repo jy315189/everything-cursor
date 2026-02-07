@@ -1,97 +1,33 @@
-# /tdd - Test-Driven Development
+# /tdd — Test-Driven Development
 
-Execute the complete TDD workflow: RED → GREEN → REFACTOR
+Execute the complete TDD workflow for a feature or function.
 
-## Usage
+## When to Use
+
+- Implementing a new function, service, or API endpoint
+- You want tests to drive the design
+- You need high confidence that the implementation is correct
+
+## Input
+
+Describe the feature or function to implement:
 
 ```
 /tdd [feature description]
 ```
 
-## Process
+## What Happens
 
-### Step 1: Define Interface
-
-First, I will define the types and interfaces for the feature:
-
-```typescript
-// Define clear interfaces before implementation
-interface FeatureInput { }
-interface FeatureOutput { }
-```
-
-### Step 2: Write Failing Tests (RED)
-
-I will write comprehensive tests that initially fail:
-
-```typescript
-describe('Feature', () => {
-  it('should handle happy path', () => {
-    // Test expected behavior
-  })
-
-  it('should handle edge cases', () => {
-    // Test edge cases
-  })
-
-  it('should handle errors', () => {
-    // Test error scenarios
-  })
-})
-```
-
-### Step 3: Verify Tests Fail
-
-Run tests to confirm they fail as expected:
-
-```bash
-npm test
-```
-
-### Step 4: Implement Minimal Code (GREEN)
-
-Write the minimum code needed to make tests pass:
-
-```typescript
-function feature(input: FeatureInput): FeatureOutput {
-  // Minimal implementation
-}
-```
-
-### Step 5: Verify Tests Pass
-
-Run tests to confirm they now pass:
-
-```bash
-npm test
-```
-
-### Step 6: Refactor (IMPROVE)
-
-Improve code quality while keeping tests green:
-- Extract helper functions
-- Improve naming
-- Add documentation
-- Optimize if needed
-
-### Step 7: Check Coverage
-
-Ensure adequate test coverage:
-
-```bash
-npm run test:coverage
-# Target: 80%+ coverage
-```
+1. **Define** — Creates TypeScript interface/types for the feature
+2. **RED** — Writes comprehensive failing tests (happy path + edge cases + errors)
+3. **GREEN** — Implements minimal code to pass all tests
+4. **REFACTOR** — Improves code quality while keeping tests green
+5. **COVERAGE** — Verifies ≥80% coverage
 
 ## Example
 
 ```
-/tdd Create a user registration function that validates email and password
+/tdd Create a calculateDiscount function that applies percentage and fixed discounts with a max discount cap
 ```
 
-Output:
-1. Interface definitions for UserInput and User
-2. Tests for valid input, invalid email, weak password
-3. Minimal implementation
-4. Refactored clean code
-5. Coverage report
+Delegates to: `@agents/tdd-guide` for step-by-step cycle guidance

@@ -1,66 +1,299 @@
-# Frontend Patterns
+# Frontend Patterns Skill
 
-Best practices and patterns for React/Next.js frontend development.
+Advanced React and Next.js patterns for production frontend applications.
 
 ## When to Use
 
-- Building React components
-- State management
-- Data fetching
-- Form handling
-- Performance optimization
+Activate this skill when:
+- Building React components or pages
+- Making state management decisions
+- Optimizing frontend performance
+- Working with Next.js App Router
+- Designing component APIs
 
 ---
 
-## Component Structure
+## 1. Component Architecture
 
-### File Organization
-
-```
-src/
-├── components/           # Shared components
-│   ├── ui/              # Base UI components
-│   │   ├── Button.tsx
-│   │   ├── Input.tsx
-│   │   └── Modal.tsx
-│   └── common/          # Common composed components
-│       ├── Header.tsx
-│       └── Footer.tsx
-├── features/            # Feature-based organization
-│   └── users/
-│       ├── components/  # Feature-specific components
-│       ├── hooks/       # Feature-specific hooks
-│       ├── api/         # API calls
-│       └── types.ts     # Feature types
-├── hooks/               # Shared hooks
-├── lib/                 # Utilities
-└── types/               # Global types
-```
-
-### Component Template
+### Component Composition Over Props Drilling
 
 ```typescript
-// components/UserCard.tsx
-import { type FC } from 'react'
-
-interface UserCardProps {
-  user: User
-  onEdit?: (user: User) => void
-  className?: string
+// ❌ Props drilling — fragile, hard to maintain
+function App() {
+  const [user, setUser] = useState<User | null>(null)
+  return <Layout user={user}>
+    <Sidebar user={user}>
+      <UserMenu user={user} onLogout={() => setUser(null)} />
+    </Sidebar>
+  </Layout>
 }
 
-export const UserCard: FC<UserCardProps> = ({ 
-  user, 
-  onEdit,
-  className 
-}) => {
+// ✅ Composition — components receive children, context for shared state
+function App() {
   return (
-    <div className={cn('rounded-lg border p-4', className)}>
-      <h3 className="font-semibold">{user.name}</h3>
-      <p className="text-gray-600">{user.email}</p>
-      {onEdit && (
-        <button onClick={() => onEdit(user)}>Edit</button>
-      )}
+    <AuthProvider>
+      <Layout>
+        <Sidebar>
+          <UserMenu />
+        </Sidebar>
+      </Layout>
+    </AuthProvider>
+  )
+}
+
+// UserMenu reads from context — no drilling
+function UserMenu() {
+  const { user, logout } = useAuth()
+  if (!user) return null
+  return <button onClick={logout}>{user.name}</button>
+}
+```
+
+### Component Size Guidelines
+
+```
+Small (< 50 lines): Buttons, icons, badges, simple inputs
+Medium (50-150 lines): Forms, cards, modals, list items
+Large (150-300 lines): Pages, complex forms, dashboards
+Too Large (> 300 lines): SPLIT into smaller components
+
+Rule: If you need to scroll to understand a component, it's too big.
+```
+
+### Container / Presentational Split
+
+```typescript
+// Container: data fetching, state, side effects
+function UserListContainer() {
+  const { data, isLoading, error } = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
+
+  if (isLoading) return <UserListSkeleton />
+  if (error) return <ErrorDisplay error={error} />
+  return <UserList users={data} />
+}
+
+// Presentational: pure UI, receives props, no side effects
+interface UserListProps {
+  users: User[]
+}
+
+function UserList({ users }: UserListProps) {
+  return (
+    <ul role="list">
+      {users.map(user => (
+        <UserListItem key={user.id} user={user} />
+      ))}
+    </ul>
+  )
+}
+```
+
+---
+
+## 2. Next.js App Router Patterns
+
+### Server vs Client Component Decision
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│ USE SERVER COMPONENT (default) when:                          │
+│ ✅ Fetching data                                              │
+│ ✅ Accessing backend resources (DB, filesystem)               │
+│ ✅ Keeping sensitive data on server (API keys, tokens)        │
+│ ✅ Reducing client bundle size                                │
+│                                                               │
+│ USE CLIENT COMPONENT ('use client') when:                     │
+│ ✅ Interactive: onClick, onChange, onSubmit                    │
+│ ✅ State: useState, useReducer                                │
+│ ✅ Effects: useEffect, useLayoutEffect                        │
+│ ✅ Browser APIs: localStorage, navigator, window              │
+│ ✅ Custom hooks that use state/effects                        │
+└───────────────────────────────────────────────────────────────┘
+```
+
+### Data Fetching in Server Components
+
+```typescript
+// ✅ Fetch directly in server components — no useEffect, no loading state
+async function UserProfilePage({ params }: { params: { id: string } }) {
+  const user = await getUserById(params.id)
+  if (!user) notFound()
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      {/* This nested server component fetches its own data in parallel */}
+      <Suspense fallback={<PostsSkeleton />}>
+        <UserPosts userId={user.id} />
+      </Suspense>
+    </div>
+  )
+}
+
+// ✅ Parallel data fetching with Promise.all
+async function DashboardPage() {
+  const [stats, recentOrders, notifications] = await Promise.all([
+    getStats(),
+    getRecentOrders(),
+    getNotifications(),
+  ])
+  return <Dashboard stats={stats} orders={recentOrders} notifications={notifications} />
+}
+```
+
+### Server Actions
+
+```typescript
+// ✅ Server action for form mutations
+'use server'
+
+import { revalidatePath } from 'next/cache'
+
+async function createPost(formData: FormData) {
+  const title = formData.get('title') as string
+  const content = formData.get('content') as string
+
+  // Validate on server
+  const validated = CreatePostSchema.parse({ title, content })
+
+  await db.post.create({ data: validated })
+  revalidatePath('/posts')
+}
+
+// Client component using server action
+'use client'
+
+function CreatePostForm() {
+  const [state, formAction] = useActionState(createPost, null)
+
+  return (
+    <form action={formAction}>
+      <input name="title" required />
+      <textarea name="content" required />
+      <SubmitButton />
+    </form>
+  )
+}
+```
+
+---
+
+## 3. State Management Decision Tree
+
+```
+Is this state used by a single component?
+  → YES: useState
+  
+Is this state shared by parent + children (2-3 levels)?
+  → YES: Lift state up to common ancestor
+
+Is this state shared across distant components?
+  → YES: Is it server data (from API)?
+    → YES: TanStack Query / SWR (cache + sync)
+    → NO: Is it complex with many actions?
+      → YES: useReducer + Context
+      → NO: Zustand (simple global state)
+
+AVOID:
+  ❌ Redux for small-medium apps (too much boilerplate)
+  ❌ Context for frequently changing data (causes re-renders)
+  ❌ Global state for server data (use query cache instead)
+```
+
+### TanStack Query Pattern
+
+```typescript
+// ✅ Server data belongs in query cache, not useState/Redux
+function useUser(id: string) {
+  return useQuery({
+    queryKey: ['user', id],
+    queryFn: () => fetchUser(id),
+    staleTime: 5 * 60 * 1000,     // fresh for 5 min
+    gcTime: 30 * 60 * 1000,       // cache for 30 min
+  })
+}
+
+// ✅ Mutations with optimistic update
+function useUpdateUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: updateUser,
+    onMutate: async (newData) => {
+      await queryClient.cancelQueries({ queryKey: ['user', newData.id] })
+      const previous = queryClient.getQueryData(['user', newData.id])
+      queryClient.setQueryData(['user', newData.id], newData)
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(['user', context?.previous?.id], context?.previous)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+  })
+}
+```
+
+---
+
+## 4. Performance Patterns
+
+### Memoization — Use Sparingly, Measure First
+
+```typescript
+// ✅ useMemo: expensive computation with stable reference
+const sortedItems = useMemo(
+  () => items.toSorted((a, b) => a.name.localeCompare(b.name)),
+  [items]
+)
+
+// ✅ useCallback: stable function reference for child component props
+const handleDelete = useCallback((id: string) => {
+  setItems(prev => prev.filter(item => item.id !== id))
+}, [])
+
+// ✅ React.memo: prevent re-renders when props haven't changed
+const ExpensiveList = React.memo(function ExpensiveList({ items }: Props) {
+  return items.map(item => <ExpensiveItem key={item.id} item={item} />)
+})
+
+// ❌ Don't memoize everything — adds overhead for trivial components
+// Only memoize when:
+//   1. Component re-renders often with same props
+//   2. Component render is expensive (large lists, complex calculations)
+//   3. You've measured and confirmed a performance issue
+```
+
+### Virtualization for Large Lists
+
+```typescript
+import { useVirtualizer } from '@tanstack/react-virtual'
+
+function VirtualList({ items }: { items: Item[] }) {
+  const parentRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+    overscan: 5,
+  })
+
+  return (
+    <div ref={parentRef} style={{ height: 400, overflow: 'auto' }}>
+      <div style={{ height: virtualizer.getTotalSize() }}>
+        {virtualizer.getVirtualItems().map(row => (
+          <div key={row.key} style={{
+            position: 'absolute',
+            top: row.start,
+            height: row.size,
+            width: '100%',
+          }}>
+            {items[row.index].name}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -68,352 +301,77 @@ export const UserCard: FC<UserCardProps> = ({
 
 ---
 
-## Custom Hooks
+## 5. Form Patterns
 
-### Data Fetching Hook
-
-```typescript
-// hooks/useQuery.ts
-import { useState, useEffect, useCallback } from 'react'
-
-interface UseQueryResult<T> {
-  data: T | null
-  isLoading: boolean
-  error: Error | null
-  refetch: () => void
-}
-
-export function useQuery<T>(
-  fetcher: () => Promise<T>,
-  deps: unknown[] = []
-): UseQueryResult<T> {
-  const [data, setData] = useState<T | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-
-  const fetch = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const result = await fetcher()
-      setData(result)
-    } catch (e) {
-      setError(e instanceof Error ? e : new Error('Unknown error'))
-    } finally {
-      setIsLoading(false)
-    }
-  }, deps)
-
-  useEffect(() => {
-    fetch()
-  }, [fetch])
-
-  return { data, isLoading, error, refetch: fetch }
-}
-
-// Usage
-const { data: users, isLoading } = useQuery(() => api.getUsers())
-```
-
-### Form Hook
+### Controlled Form with Validation
 
 ```typescript
-// hooks/useForm.ts
-import { useState, useCallback } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
-interface UseFormOptions<T> {
-  initialValues: T
-  onSubmit: (values: T) => Promise<void>
-  validate?: (values: T) => Partial<Record<keyof T, string>>
-}
+const FormSchema = z.object({
+  email: z.string().email('Invalid email'),
+  password: z.string().min(8, 'At least 8 characters'),
+  name: z.string().min(1, 'Required').max(100),
+})
 
-export function useForm<T extends Record<string, unknown>>({
-  initialValues,
-  onSubmit,
-  validate
-}: UseFormOptions<T>) {
-  const [values, setValues] = useState(initialValues)
-  const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+type FormValues = z.infer<typeof FormSchema>
 
-  const handleChange = useCallback((name: keyof T, value: unknown) => {
-    setValues(prev => ({ ...prev, [name]: value }))
-    setErrors(prev => ({ ...prev, [name]: undefined }))
-  }, [])
+function RegistrationForm() {
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    resolver: zodResolver(FormSchema),
+  })
 
-  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
-    e?.preventDefault()
-    
-    if (validate) {
-      const validationErrors = validate(values)
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors)
-        return
-      }
+  const onSubmit = async (data: FormValues) => {
+    const result = await registerUser(data)
+    if (!result.success) {
+      toast.error(result.error)
     }
-
-    setIsSubmitting(true)
-    try {
-      await onSubmit(values)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [values, validate, onSubmit])
-
-  return { values, errors, isSubmitting, handleChange, handleSubmit }
-}
-```
-
----
-
-## State Management
-
-### Context Pattern
-
-```typescript
-// contexts/AuthContext.tsx
-import { createContext, useContext, useState, type FC, type ReactNode } from 'react'
-
-interface User {
-  id: string
-  email: string
-  name: string
-}
-
-interface AuthContextValue {
-  user: User | null
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
-  isLoading: boolean
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
-
-export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  const login = async (email: string, password: string) => {
-    const user = await api.login(email, password)
-    setUser(user)
-  }
-
-  const logout = () => {
-    setUser(null)
-    api.logout()
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
-  return context
-}
-```
-
----
-
-## Performance
-
-### Memoization
-
-```typescript
-import { useMemo, useCallback, memo } from 'react'
-
-// Memoize expensive calculations
-const ExpensiveComponent: FC<{ items: Item[] }> = ({ items }) => {
-  const sortedItems = useMemo(
-    () => [...items].sort((a, b) => a.name.localeCompare(b.name)),
-    [items]
-  )
-
-  const handleClick = useCallback((id: string) => {
-    console.log('Clicked:', id)
-  }, [])
-
-  return (
-    <ul>
-      {sortedItems.map(item => (
-        <li key={item.id} onClick={() => handleClick(item.id)}>
-          {item.name}
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-// Memoize component to prevent unnecessary re-renders
-export const MemoizedExpensiveComponent = memo(ExpensiveComponent)
-```
-
-### Code Splitting
-
-```typescript
-import { lazy, Suspense } from 'react'
-
-// Lazy load heavy components
-const HeavyChart = lazy(() => import('./HeavyChart'))
-const AdminPanel = lazy(() => import('./AdminPanel'))
-
-function App() {
-  return (
-    <Suspense fallback={<Loading />}>
-      <HeavyChart />
-    </Suspense>
-  )
-}
-```
-
-### Virtualization
-
-```typescript
-import { FixedSizeList } from 'react-window'
-
-const VirtualList: FC<{ items: Item[] }> = ({ items }) => {
-  return (
-    <FixedSizeList
-      height={400}
-      width="100%"
-      itemCount={items.length}
-      itemSize={50}
-    >
-      {({ index, style }) => (
-        <div style={style}>
-          {items[index].name}
-        </div>
-      )}
-    </FixedSizeList>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <Field label="Email" error={errors.email?.message}>
+        <input type="email" {...register('email')} />
+      </Field>
+      <Field label="Password" error={errors.password?.message}>
+        <input type="password" {...register('password')} />
+      </Field>
+      <Field label="Name" error={errors.name?.message}>
+        <input {...register('name')} />
+      </Field>
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Registering...' : 'Register'}
+      </button>
+    </form>
   )
 }
 ```
 
 ---
 
-## Error Handling
-
-### Error Boundary
+## 6. Accessibility Checklist
 
 ```typescript
-import { Component, type ReactNode } from 'react'
+// Every interactive element needs:
+// ✅ Keyboard accessible (Tab, Enter, Escape)
+// ✅ ARIA labels for screen readers
+// ✅ Focus management for modals/dialogs
+// ✅ Color contrast ratio ≥ 4.5:1
 
-interface Props {
-  children: ReactNode
-  fallback?: ReactNode
-}
+// ❌ div with onClick — not keyboard accessible
+<div onClick={handleClick}>Click me</div>
 
-interface State {
-  hasError: boolean
-  error: Error | null
-}
+// ✅ button — keyboard accessible by default
+<button onClick={handleClick}>Click me</button>
 
-export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null }
-
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('Error caught:', error, info)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback || <DefaultErrorFallback error={this.state.error} />
-    }
-    return this.props.children
-  }
-}
-
-// Usage
-<ErrorBoundary fallback={<ErrorPage />}>
-  <App />
-</ErrorBoundary>
-```
-
----
-
-## Styling Patterns
-
-### Tailwind with cn utility
-
-```typescript
-// lib/utils.ts
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
-// Usage in components
-<button 
-  className={cn(
-    'px-4 py-2 rounded-md',
-    variant === 'primary' && 'bg-blue-500 text-white',
-    variant === 'secondary' && 'bg-gray-200 text-gray-800',
-    disabled && 'opacity-50 cursor-not-allowed',
-    className
-  )}
->
-  {children}
+// ✅ Accessible icon button
+<button onClick={onClose} aria-label="Close dialog">
+  <XIcon aria-hidden="true" />
 </button>
-```
 
----
-
-## Testing
-
-### Component Testing
-
-```typescript
-import { render, screen, fireEvent } from '@testing-library/react'
-import { UserCard } from './UserCard'
-
-describe('UserCard', () => {
-  const mockUser = { id: '1', name: 'John', email: 'john@example.com' }
-
-  it('renders user information', () => {
-    render(<UserCard user={mockUser} />)
-    
-    expect(screen.getByText('John')).toBeInTheDocument()
-    expect(screen.getByText('john@example.com')).toBeInTheDocument()
-  })
-
-  it('calls onEdit when edit button is clicked', () => {
-    const onEdit = jest.fn()
-    render(<UserCard user={mockUser} onEdit={onEdit} />)
-    
-    fireEvent.click(screen.getByText('Edit'))
-    
-    expect(onEdit).toHaveBeenCalledWith(mockUser)
-  })
-})
-```
-
-### Hook Testing
-
-```typescript
-import { renderHook, act } from '@testing-library/react'
-import { useCounter } from './useCounter'
-
-describe('useCounter', () => {
-  it('increments counter', () => {
-    const { result } = renderHook(() => useCounter())
-    
-    act(() => {
-      result.current.increment()
-    })
-    
-    expect(result.current.count).toBe(1)
-  })
-})
+// ✅ Loading states announced to screen readers
+<div role="status" aria-live="polite">
+  {isLoading ? 'Loading...' : `${items.length} results found`}
+</div>
 ```

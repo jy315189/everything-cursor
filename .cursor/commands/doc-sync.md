@@ -1,65 +1,27 @@
-# /doc-sync - Documentation Synchronization
+# /doc-sync — Documentation Synchronization
 
-Update documentation to match code changes.
+Update documentation to match recent code changes.
 
-## Usage
+## When to Use
+
+- After changing a public API (function signature, parameters, return type)
+- After adding a new feature or endpoint
+- Before creating a release
+- When documentation is out of date
+
+## Input
 
 ```
 /doc-sync [file or feature that changed]
 ```
 
-## Process
+## What Happens
 
-### Step 1: Identify Changes
-
-I will identify what changed:
-- Function signatures
-- API endpoints
-- Component props
-- Configuration options
-
-### Step 2: Find Related Docs
-
-Locate documentation that needs updating:
-- README.md
-- JSDoc/TSDoc comments
-- API documentation
-- CHANGELOG.md
-
-### Step 3: Update Documentation
-
-**JSDoc Updates:**
-```typescript
-/**
- * Updated description
- * @param newParam - New parameter description
- * @returns Updated return description
- */
-```
-
-**README Updates:**
-```markdown
-## Updated Section
-- New feature description
-- Updated usage example
-```
-
-**CHANGELOG Updates:**
-```markdown
-## [Version] - Date
-
-### Added
-- New feature
-
-### Changed
-- Updated behavior
-```
-
-### Step 4: Verify
-
-- [ ] Examples still work
-- [ ] Links are valid
-- [ ] Formatting is correct
+1. **Detects** what changed (API signatures, behavior, config)
+2. **Identifies** related documentation (JSDoc, README, CHANGELOG)
+3. **Updates** all affected documentation
+4. **Verifies** code examples still compile
+5. **Adds** CHANGELOG entry if user-visible
 
 ## Example
 
@@ -67,7 +29,4 @@ Locate documentation that needs updating:
 /doc-sync src/api/users.ts
 ```
 
-Output:
-1. List of documentation updates needed
-2. Updated documentation files
-3. Verification checklist
+Delegates to: `@agents/doc-updater` for comprehensive documentation sync

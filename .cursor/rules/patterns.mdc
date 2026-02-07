@@ -1,36 +1,30 @@
 ---
-description: Common design patterns - API response format, repository pattern
-globs: 
-alwaysApply: true
+description: Design patterns for services, APIs, and data access layers
+globs: "**/services/**, **/api/**, **/repositories/**, **/handlers/**, **/controllers/**"
+alwaysApply: false
 ---
 
 # Design Patterns
 
-## API Response Format
+## API Response Envelope (mandatory for all endpoints)
 
 ```typescript
-// Success response
-interface SuccessResponse<T> {
-  success: true
-  data: T
-}
+// Success
+{ success: true, data: T, meta?: { page, pageSize, total } }
 
-// Error response
-interface ErrorResponse {
-  success: false
-  error: string
-  code?: string
-}
+// Error
+{ success: false, error: { code: string, message: string, details?: unknown } }
+```
 
-type ApiResponse<T> = SuccessResponse<T> | ErrorResponse
+## Result Type (for service-layer expected failures)
 
-// Usage
-function handleRequest<T>(result: Result<T>): ApiResponse<T> {
-  if (result.success) {
-    return { success: true, data: result.data }
-  }
-  return { success: false, error: result.error }
-}
+```typescript
+type Result<T, E = string> =
+  | { success: true; data: T }
+  | { success: false; error: E }
+
+// Use Result for: not-found, validation, business rule violations
+// Use exceptions for: bugs, infra failures, unexpected errors
 ```
 
 ## Repository Pattern
@@ -38,75 +32,19 @@ function handleRequest<T>(result: Result<T>): ApiResponse<T> {
 ```typescript
 interface Repository<T> {
   findById(id: string): Promise<T | null>
-  findAll(): Promise<T[]>
-  create(data: Partial<T>): Promise<T>
+  findAll(filter?: Partial<T>): Promise<T[]>
+  create(data: Omit<T, 'id' | 'createdAt'>): Promise<T>
   update(id: string, data: Partial<T>): Promise<T>
   delete(id: string): Promise<void>
 }
-
-class UserRepository implements Repository<User> {
-  async findById(id: string): Promise<User | null> {
-    return prisma.user.findUnique({ where: { id } })
-  }
-  // ... other methods
-}
 ```
 
-## Result Pattern
+## Layered Architecture
 
-```typescript
-type Result<T, E = string> = 
-  | { success: true; data: T }
-  | { success: false; error: E }
-
-async function fetchUser(id: string): Promise<Result<User>> {
-  try {
-    const user = await db.users.findUnique({ where: { id } })
-    if (!user) {
-      return { success: false, error: 'User not found' }
-    }
-    return { success: true, data: user }
-  } catch (error) {
-    return { success: false, error: 'Database error' }
-  }
-}
 ```
+Handler (HTTP) → Service (Business Logic) → Repository (Data Access)
 
-## Hook Pattern (React)
-
-```typescript
-function useAsync<T>(asyncFn: () => Promise<T>) {
-  const [state, setState] = useState<{
-    data: T | null
-    loading: boolean
-    error: Error | null
-  }>({ data: null, loading: true, error: null })
-
-  useEffect(() => {
-    asyncFn()
-      .then(data => setState({ data, loading: false, error: null }))
-      .catch(error => setState({ data: null, loading: false, error }))
-  }, [asyncFn])
-
-  return state
-}
-```
-
-## Factory Pattern
-
-```typescript
-interface PaymentProcessor {
-  process(amount: number): Promise<PaymentResult>
-}
-
-function createPaymentProcessor(type: string): PaymentProcessor {
-  switch (type) {
-    case 'stripe':
-      return new StripeProcessor()
-    case 'paypal':
-      return new PayPalProcessor()
-    default:
-      throw new Error(`Unknown payment type: ${type}`)
-  }
-}
+Handler: parse request, validate input, format response. NO business logic.
+Service: orchestrate operations, enforce rules, transaction boundaries. NO HTTP.
+Repository: single-entity CRUD, query construction. NO business rules.
 ```

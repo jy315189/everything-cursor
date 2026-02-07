@@ -1,106 +1,40 @@
 ---
-description: Performance optimization guidelines and caching strategies
-globs: 
-alwaysApply: true
+description: Performance optimization guidelines — activated for performance-sensitive code
+globs: "**/*cache*.{ts,js}, **/*query*.{ts,js}, **/*loader*.{ts,js}, **/hooks/use*.{ts,tsx}"
+alwaysApply: false
 ---
 
-# Performance Guidelines
+# Performance Rules
 
-## General Principles
+## First Principles
 
-1. **Measure First** - Profile before optimizing
-2. **Avoid Premature Optimization** - Focus on correctness first
-3. **Cache Strategically** - Cache expensive operations
-4. **Minimize Network Calls** - Batch requests when possible
+1. **Measure before optimizing** — profile, don't guess
+2. **Correctness before performance** — fast + wrong = useless
+3. **Optimize the bottleneck** — 80% of time is in 20% of code
 
-## React Performance
+## Database
 
-### Memoization
+- **No N+1 queries** — use `include`, `join`, or dataloader
+- **Index every WHERE, JOIN, ORDER BY column** — check query plans
+- **Paginate large result sets** — cursor-based for >1000 rows
 
-```typescript
-// Memoize expensive calculations
-const expensiveValue = useMemo(() => {
-  return computeExpensiveValue(items)
-}, [items])
+## React
 
-// Memoize callbacks
-const handleClick = useCallback(() => {
-  doSomething(id)
-}, [id])
+- **useMemo / useCallback** — ONLY when measured performance issue exists
+- **React.memo** — ONLY for components that re-render often with same props
+- **Virtualize lists > 100 items** — use @tanstack/react-virtual
+- **Lazy load heavy components** — `React.lazy()` + `Suspense`
+- **Avoid re-render cascades** — don't put frequently-changing state in Context
 
-// Memoize components
-const MemoizedComponent = React.memo(ExpensiveComponent)
-```
+## Network
 
-### Virtualization
+- **Batch API calls** — `Promise.all` for independent requests
+- **Cache server data** — TanStack Query / SWR with appropriate staleTime
+- **Debounce user input** — search, resize, scroll handlers (300ms default)
+- **Compress responses** — gzip/brotli on server
 
-For large lists, use virtualization:
+## Build
 
-```typescript
-import { FixedSizeList } from 'react-window'
-
-<FixedSizeList
-  height={400}
-  itemCount={items.length}
-  itemSize={50}
->
-  {({ index, style }) => (
-    <div style={style}>{items[index].name}</div>
-  )}
-</FixedSizeList>
-```
-
-## Database Performance
-
-### Query Optimization
-
-```typescript
-// BAD: N+1 query problem
-const users = await prisma.user.findMany()
-for (const user of users) {
-  const posts = await prisma.post.findMany({ where: { userId: user.id } })
-}
-
-// GOOD: Include related data
-const users = await prisma.user.findMany({
-  include: { posts: true }
-})
-```
-
-### Indexing
-
-```sql
--- Add indexes for frequently queried columns
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_posts_user_id ON posts(user_id);
-```
-
-## Caching Strategies
-
-### In-Memory Cache
-
-```typescript
-const cache = new Map<string, { data: any; expiry: number }>()
-
-async function getCached<T>(
-  key: string,
-  fetcher: () => Promise<T>,
-  ttlMs: number = 60000
-): Promise<T> {
-  const cached = cache.get(key)
-  if (cached && cached.expiry > Date.now()) {
-    return cached.data
-  }
-  
-  const data = await fetcher()
-  cache.set(key, { data, expiry: Date.now() + ttlMs })
-  return data
-}
-```
-
-## Build Optimization
-
-- Enable code splitting
-- Use dynamic imports for large modules
-- Optimize images and assets
-- Enable gzip/brotli compression
+- **Code split by route** — dynamic `import()` for route components
+- **Tree-shake** — use ESM, avoid barrel re-exports of large modules
+- **Optimize images** — WebP/AVIF format, responsive sizes, lazy loading

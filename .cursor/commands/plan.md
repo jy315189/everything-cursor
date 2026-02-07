@@ -1,63 +1,31 @@
-# /plan - Implementation Planning
+# /plan — Implementation Planning
 
-Create a detailed implementation plan for a feature or task.
+Create a detailed, phased implementation plan for a feature.
 
-## Usage
+## When to Use
+
+- Starting a new feature or epic
+- Task is complex with multiple steps and dependencies
+- You need to estimate effort and identify risks before coding
+
+## Input
 
 ```
 /plan [feature or task description]
 ```
 
-## Process
+## What Happens
 
-### Step 1: Requirement Analysis
-
-I will analyze and clarify:
-- What exactly needs to be built?
-- What are the acceptance criteria?
-- What are the edge cases?
-- What are the constraints?
-
-### Step 2: Task Breakdown
-
-Break down into specific, actionable tasks:
-
-```markdown
-## Implementation Plan: [Feature Name]
-
-### Phase 1: Foundation
-- [ ] Task 1.1 - Complexity: Low
-- [ ] Task 1.2 - Complexity: Medium
-
-### Phase 2: Core Implementation
-- [ ] Task 2.1 - Complexity: High
-  - Depends on: Task 1.1, 1.2
-
-### Phase 3: Testing & Integration
-- [ ] Task 3.1 - Write tests
-- [ ] Task 3.2 - Integration
-```
-
-### Step 3: Risk Assessment
-
-Identify potential risks and mitigations:
-- Technical challenges
-- Integration points
-- Performance concerns
-- Security considerations
-
-### Step 4: Success Criteria
-
-Define clear success criteria for each task.
+1. **Analyzes** requirements and identifies acceptance criteria
+2. **Decomposes** into phased tasks (each ≤4 hours)
+3. **Maps** dependencies between tasks
+4. **Assesses** risks with mitigation strategies
+5. **Produces** ordered implementation plan
 
 ## Example
 
 ```
-/plan Add user authentication with OAuth2
+/plan Add user authentication with email/password login, Google OAuth, and session management
 ```
 
-Output:
-1. Requirements analysis
-2. Task list with dependencies
-3. Risk assessment
-4. Implementation order recommendation
+Delegates to: `@agents/planner` for detailed task breakdown

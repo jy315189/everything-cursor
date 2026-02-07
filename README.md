@@ -1,250 +1,159 @@
 # Everything Cursor
 
-**Complete collection of Cursor AI rules, skills, agents, commands, hooks, and MCP configurations for professional development.**
+**Production-ready Cursor AI configurations — rules, skills, agents, commands, hooks, and MCP configs.**
 
-Production-ready configurations evolved from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) - adapted for Cursor IDE.
+A complete, reusable configuration template that brings professional software engineering practices into AI-assisted development with Cursor IDE.
 
----
-
-## What's Inside
-
-```
-everything-cursor/
-├── .cursor/
-│   ├── agents/               # Specialized subagents for delegation
-│   │   ├── planner.md           # Feature implementation planning
-│   │   ├── architect.md         # System design decisions
-│   │   ├── tdd-guide.md         # Test-driven development guide
-│   │   ├── code-reviewer.md     # Quality and security review
-│   │   ├── security-reviewer.md # Vulnerability analysis
-│   │   ├── build-error-resolver.md
-│   │   ├── e2e-runner.md        # Playwright E2E testing
-│   │   ├── refactor-cleaner.md  # Dead code cleanup
-│   │   └── doc-updater.md       # Documentation sync
-│   │
-│   ├── skills/               # Workflow definitions and domain knowledge
-│   │   ├── tdd-workflow/        # TDD methodology
-│   │   ├── coding-standards/    # Code quality standards
-│   │   ├── security-review/     # Security checklist
-│   │   ├── backend-patterns/    # API, database, caching patterns
-│   │   └── frontend-patterns/   # React, Next.js patterns
-│   │
-│   ├── commands/             # Slash commands for quick execution
-│   │   ├── tdd.md               # /tdd - Test-driven development
-│   │   ├── plan.md              # /plan - Implementation planning
-│   │   ├── e2e.md               # /e2e - E2E test generation
-│   │   ├── code-review.md       # /code-review - Quality review
-│   │   ├── build-fix.md         # /build-fix - Fix build errors
-│   │   ├── refactor-clean.md    # /refactor-clean - Dead code removal
-│   │   ├── security-audit.md    # /security-audit - Security scan
-│   │   └── doc-sync.md          # /doc-sync - Documentation sync
-│   │
-│   ├── rules/                # Always-follow guidelines (.mdc format)
-│   │   ├── security.mdc         # Security checklist
-│   │   ├── coding-style.mdc     # Code style and immutability
-│   │   ├── testing.mdc          # TDD workflow and coverage
-│   │   ├── git-workflow.mdc     # Commit format and PR process
-│   │   ├── patterns.mdc         # Common design patterns
-│   │   ├── performance.mdc      # Optimization guidelines
-│   │   └── workflow.mdc         # Development workflow
-│   │
-│   ├── hooks/                # Trigger-based automations
-│   │   ├── hooks.json           # Hook configurations
-│   │   └── README.md            # Hook documentation
-│   │
-│   ├── mcp-configs/          # MCP server configurations
-│   │   ├── full-stack.json      # Full-stack development setup
-│   │   └── minimal.json         # Minimal essential setup
-│   │
-│   ├── mcp.json              # Default MCP configuration
-│   │
-│   └── examples/             # Example configurations
-│       ├── project-rules.md
-│       └── mcp-config.md
-│
-└── README.md
-```
+Based on [everything-claude-code](https://github.com/affaan-m/everything-claude-code) — adapted, enhanced, and optimized for Cursor.
 
 ---
 
-## Installation
+## Architecture
 
-### Option 1: Copy to Project (Recommended)
+```
+.cursor/
+├── rules/         7 rules    Enforced constraints (security, style, testing, git)
+├── agents/        9 agents   Specialized AI roles with CoT reasoning
+├── skills/        5 skills   Deep domain knowledge injection
+├── commands/      8 commands Lightweight slash command triggers
+├── hooks/         4 checks   Quality gate definitions
+├── mcp-configs/   2 presets  External tool integration
+└── mcp.json                  Default MCP configuration
+```
 
-Copy the `.cursor/` directory to your project:
+### Design Principles
+
+1. **Layered Context Loading** — Only 4 rules are always-on. Testing, performance, and patterns rules activate based on file globs to save tokens.
+2. **Separation of Concerns** — Agents = deep role-play with reasoning. Commands = lightweight trigger descriptions. Skills = domain knowledge. Rules = enforced constraints.
+3. **Prompt Engineering Quality** — All agents include: identity, thinking process, constraints, output format, and exit conditions.
+4. **Production Realism** — Hooks are documented with actual integration paths (husky + lint-staged), not just conceptual definitions.
+
+---
+
+## Quick Start
+
+### Copy to Your Project
 
 ```bash
-# Clone the repo
 git clone https://github.com/YOUR_USERNAME/everything-cursor.git
-
-# Copy to your project
 cp -r everything-cursor/.cursor your-project/.cursor
 ```
 
-### Option 2: Global Installation
-
-Copy to your user-level Cursor configuration:
+### Or Copy Only What You Need
 
 ```bash
-# Windows
-xcopy everything-cursor\.cursor %USERPROFILE%\.cursor /E /I
+# Just the rules (always-on coding standards)
+cp -r everything-cursor/.cursor/rules your-project/.cursor/rules
 
-# macOS/Linux
-cp -r everything-cursor/.cursor ~/.cursor
+# Just the agents (specialized AI assistants)
+cp -r everything-cursor/.cursor/agents your-project/.cursor/agents
 ```
 
-> **Note:** Rules must use `.mdc` extension (Markdown Cursor format) with YAML frontmatter to be recognized by Cursor.
-
 ---
 
-## Core Features
+## Module Reference
 
-### 1. Agents (Subagents)
+### Rules (`.cursor/rules/`)
 
-Specialized agents for delegation:
+Enforced constraints the AI must follow. Uses Cursor's `.mdc` format with YAML frontmatter.
 
-| Agent | Purpose |
-|-------|---------|
-| `planner` | Feature planning and task breakdown |
-| `architect` | System design and tech decisions |
-| `code-reviewer` | Quality and security review |
-| `security-reviewer` | Vulnerability analysis |
-| `build-error-resolver` | Fix build errors |
-| `e2e-runner` | E2E test generation |
-| `refactor-cleaner` | Dead code removal |
-| `doc-updater` | Documentation sync |
-| `tdd-guide` | TDD workflow guidance |
+| Rule | Loading Strategy | Purpose |
+|------|-----------------|---------|
+| `security.mdc` | **Always on** | No secrets, input validation, injection prevention |
+| `coding-style.mdc` | **Always on** | Immutability, file limits, naming, no `any` |
+| `git-workflow.mdc` | **Always on** | Conventional commits, PR process |
+| `workflow.mdc` | **Always on** | Standard development process (plan → TDD → review → PR) |
+| `testing.mdc` | **Glob: test files** | TDD workflow, coverage targets — only loads for `*.test.*`, `*.spec.*` |
+| `performance.mdc` | **Glob: perf-sensitive** | Optimization rules — only loads for cache/query/loader files |
+| `patterns.mdc` | **Glob: services/api** | Design patterns — only loads for service/API/repository files |
 
-### 2. Skills (Domain Knowledge)
+> **Token savings**: By glob-targeting 3 of 7 rules, context overhead is reduced by ~40% for non-test, non-API work.
 
-| Skill | Purpose |
-|-------|---------|
-| `tdd-workflow` | Test-driven development methodology |
-| `coding-standards` | Code quality and consistency |
-| `security-review` | Security audit checklist |
-| `backend-patterns` | API, database, caching patterns |
-| `frontend-patterns` | React, Next.js best practices |
+### Agents (`.cursor/agents/`)
 
-### 3. Commands (Slash Commands)
+Specialized AI roles with structured prompt engineering: identity, thinking process (Chain-of-Thought), constraints, strict output format, and exit conditions.
 
-| Command | Purpose |
-|---------|---------|
-| `/tdd` | Execute TDD workflow: RED → GREEN → REFACTOR |
-| `/plan` | Create implementation plan |
-| `/e2e` | Generate E2E tests |
-| `/code-review` | Perform code quality review |
-| `/build-fix` | Diagnose and fix build errors |
-| `/refactor-clean` | Remove dead code |
-| `/security-audit` | Security vulnerability scan |
-| `/doc-sync` | Sync documentation with code |
+| Agent | Role | Key Feature |
+|-------|------|-------------|
+| `planner` | Task decomposition & planning | Risk assessment, dependency mapping |
+| `architect` | System design decisions | Multi-option comparison with trade-offs |
+| `tdd-guide` | TDD cycle coaching | Step-by-step RED → GREEN → REFACTOR |
+| `code-reviewer` | Code quality review | Severity-rated findings with fixes |
+| `security-reviewer` | Vulnerability analysis | OWASP-based, CVSS severity ratings |
+| `build-error-resolver` | Build error diagnosis | Systematic diagnosis, not guessing |
+| `e2e-runner` | Playwright E2E tests | Anti-flakiness patterns built in |
+| `refactor-cleaner` | Dead code removal | Safety verification before removal |
+| `doc-updater` | Documentation sync | Keeps docs in sync with code changes |
 
-### 4. Rules (Core Guidelines)
+### Skills (`.cursor/skills/`)
 
-| Rule | Purpose |
-|------|---------|
-| `security.mdc` | No hardcoded secrets, input validation |
-| `coding-style.mdc` | Immutability, file limits, naming |
-| `testing.mdc` | TDD, 80% coverage requirement |
-| `git-workflow.mdc` | Conventional commits, PR process |
-| `patterns.mdc` | API response, repository pattern |
-| `performance.mdc` | Optimization, caching |
-| `workflow.mdc` | Development workflow |
+Deep domain knowledge that goes beyond what AI models know by default. Each skill provides decision frameworks, code patterns, and anti-patterns for a specific domain.
 
-### 5. MCP Configurations
+| Skill | Contents |
+|-------|----------|
+| `backend-patterns` | Layered architecture, API design, caching strategy, error hierarchy, RBAC, event-driven patterns |
+| `coding-standards` | Immutability enforcement, naming conventions, TypeScript strictness, Result type, size limits |
+| `frontend-patterns` | Server/Client component decisions, state management tree, TanStack Query, virtualization, forms |
+| `security-review` | OWASP Top 10 checklist, input validation layers, password/JWT security, rate limiting, security headers |
+| `tdd-workflow` | Full TDD cycle with examples, testing pyramid, mocking patterns, coverage strategy, anti-patterns |
 
-Pre-configured MCP servers:
+### Commands (`.cursor/commands/`)
 
-| Server | Purpose |
-|--------|---------|
-| `github` | PR, issues, repo operations |
-| `memory` | Persistent memory |
-| `context7` | Live documentation lookup |
-| `supabase` | Database operations |
-| `vercel` | Deployment management |
-| `playwright` | Browser automation |
+Lightweight slash commands that describe when to use each workflow and delegate to the appropriate agent.
 
-### 6. Hooks (Automations)
+| Command | Trigger | Delegates To |
+|---------|---------|-------------|
+| `/tdd` | Implement a feature with TDD | `@agents/tdd-guide` |
+| `/plan` | Create implementation plan | `@agents/planner` |
+| `/code-review` | Review code quality | `@agents/code-reviewer` |
+| `/security-audit` | Security vulnerability scan | `@agents/security-reviewer` |
+| `/build-fix` | Fix build errors | `@agents/build-error-resolver` |
+| `/e2e` | Generate E2E tests | `@agents/e2e-runner` |
+| `/refactor-clean` | Remove dead code | `@agents/refactor-cleaner` |
+| `/doc-sync` | Update documentation | `@agents/doc-updater` |
 
-| Hook | Trigger | Purpose |
-|------|---------|---------|
-| `no-console-log` | Pre-commit | Warn about console.log |
-| `no-hardcoded-secrets` | Pre-commit | Detect secrets |
-| `lint-check` | Post-edit | Auto-fix linting |
-| `format-check` | Post-edit | Auto-format |
-| `type-check` | Post-generate | TypeScript check |
+### Hooks (`.cursor/hooks/`)
 
----
+Quality check definitions with real integration path via husky + lint-staged.
 
-## Key Standards
+| Check | Severity | Detects |
+|-------|----------|---------|
+| `no-console-log` | Warning | `console.log` in source files |
+| `no-hardcoded-secrets` | Error | API keys, passwords, tokens in code |
+| `no-ts-ignore` | Error | `@ts-ignore` that hides type errors |
+| `no-any-type` | Warning | Explicit `any` type annotations |
 
-### Code Quality
-- Immutability enforcement
-- File size limits (800 lines max)
-- Function size limits (50 lines max)
-- Explicit TypeScript types
-- No `any` types
+> See `hooks/README.md` for husky + lint-staged setup instructions.
 
-### Security
-- No hardcoded secrets
-- Input validation with Zod
-- SQL injection prevention
-- XSS/CSRF protection
+### MCP Configs (`.cursor/mcp-configs/`)
 
-### Testing
-- TDD methodology (RED → GREEN → REFACTOR)
-- 80% minimum coverage
-- Unit, integration, and E2E tests
+| Preset | Servers | Use Case |
+|--------|---------|----------|
+| `minimal.json` | GitHub, Context7 | Lightweight setup |
+| `full-stack.json` | GitHub, Memory, Context7, Supabase, Vercel, Playwright, Filesystem | Full-stack development |
 
-### Git Workflow
-- Conventional commits
-- PR templates
-- Code review checklist
+> **Tip**: Keep ≤10 MCP servers enabled. Too many reduces your context window.
 
 ---
 
 ## Customization
 
-These configurations are starting points. Customize for your needs:
+These configurations are starting points. Customize for your project:
 
-1. **Coverage threshold** - Adjust in `testing.mdc`
-2. **File size limits** - Change in `coding-style.mdc`
-3. **Commit types** - Add custom types in `git-workflow.mdc`
-4. **MCP servers** - Enable/disable in `mcp.json`
-5. **Hooks** - Add custom checks in `hooks/hooks.json`
-
----
-
-## Context Window Management
-
-**Important:** Don't enable all MCPs at once. Too many tools can reduce your context window.
-
-Rule of thumb:
-- Keep under 10 MCPs enabled per project
-- Disable unused servers
-- Use `disabledMcpServers` in project config
+| What to Change | Where | Example |
+|---------------|-------|---------|
+| Coverage threshold | `rules/testing.mdc` | Change `≥ 80%` to your target |
+| File size limit | `rules/coding-style.mdc` | Change `≤ 800 lines` |
+| Rule loading | Any `.mdc` frontmatter | Change `alwaysApply` / `globs` |
+| Add commit types | `rules/git-workflow.mdc` | Add `perf:`, `i18n:` |
+| MCP servers | `mcp.json` | Enable/disable servers |
 
 ---
 
 ## Credits
 
-Based on [everything-claude-code](https://github.com/affaan-m/everything-claude-code) by [@affaanmustafa](https://x.com/affaanmustafa) - Anthropic hackathon winner.
-
----
-
-## Contributing
-
-Contributions are welcome! Ideas:
-- Language-specific rules (Python, Go, Rust)
-- Framework-specific skills (Django, Rails, Laravel)
-- Additional design patterns
-- DevOps configurations
-
----
+Based on [everything-claude-code](https://github.com/affaan-m/everything-claude-code) by [@affaanmustafa](https://x.com/affaanmustafa) — Anthropic hackathon winner, 25.9k+ GitHub Stars.
 
 ## License
 
-MIT - Use freely, modify as needed, contribute back if you can.
-
----
-
-**Star this repo if it helps. Build something great with Cursor!**
+MIT — Use freely, modify as needed, contribute back if you can.

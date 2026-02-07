@@ -1,112 +1,33 @@
 ---
-description: Development workflow - feature implementation process
+description: Development workflow — the standard process for all code changes
 globs: 
 alwaysApply: true
 ---
 
 # Development Workflow
 
-## Feature Implementation
+## Standard Process
 
-### Phase 1: Planning
+| Task Type | Workflow |
+|-----------|----------|
+| New feature | Plan → Define types → TDD → Self-review → PR |
+| Bug fix | Reproduce with test → Fix → Verify → Regression test → PR |
+| Refactor | Ensure tests pass → Incremental changes → Test after each → PR |
+| API endpoint | Types → Integration tests → Handler → Validation → Docs → PR |
+| UI component | Props interface → Unit tests → Implement → Accessibility check → PR |
 
-Before writing code:
+## Before Writing Code
 
-1. **Clarify Requirements**
-   - What needs to be built?
-   - What are the acceptance criteria?
-   - What are the edge cases?
+1. **Clarify** — What exactly needs to be built? What are the acceptance criteria?
+2. **Break down** — Split into tasks completable in 1-4 hours
+3. **Assess risk** — Security implications? Performance concerns? Breaking changes?
 
-2. **Break Down Tasks**
-   - Create specific, actionable steps
-   - Identify dependencies
-   - Estimate complexity (High/Medium/Low)
-
-3. **Assess Risks**
-   - Technical challenges
-   - Integration points
-   - Performance concerns
-   - Security considerations
-
-### Phase 2: Test-Driven Development
+## Self-Review Checklist (before every PR)
 
 ```
-RED → GREEN → REFACTOR
+Security:    □ No secrets  □ Input validated  □ No injection vectors
+Quality:     □ Functions ≤50 lines  □ Files ≤800 lines  □ Errors handled
+Testing:     □ Tests included  □ Edge cases covered  □ Coverage ≥80%
+Style:       □ Immutable patterns  □ No any  □ No console.log
+Docs:        □ JSDoc updated  □ README updated if needed  □ CHANGELOG entry
 ```
-
-1. **Define Interfaces** - Types and contracts first
-2. **Write Failing Tests** - Tests should fail initially
-3. **Implement Minimal Code** - Just enough to pass
-4. **Verify Tests Pass** - Run test suite
-5. **Refactor** - Improve code quality
-6. **Check Coverage** - Ensure 80%+ coverage
-
-### Phase 3: Code Review
-
-Self-review before PR:
-
-**Security:**
-- [ ] No hardcoded credentials
-- [ ] Input validation present
-- [ ] No injection vulnerabilities
-
-**Quality:**
-- [ ] Functions < 50 lines
-- [ ] Files < 800 lines
-- [ ] Error handling present
-
-**Best Practices:**
-- [ ] Immutable patterns
-- [ ] Tests included
-- [ ] Documentation updated
-
-### Phase 4: Commit & Deploy
-
-- Follow conventional commits
-- Create comprehensive PR description
-- Request review
-- Address feedback
-- Merge when approved
-
----
-
-## Task-Specific Workflows
-
-### Bug Fixes
-1. Write test that reproduces the bug
-2. Verify test fails
-3. Implement fix
-4. Verify test passes
-5. Add regression tests
-
-### Refactoring
-1. Ensure existing tests pass
-2. Make incremental changes
-3. Run tests after each change
-4. Commit frequently
-
-### New API Endpoint
-1. Define request/response types
-2. Write integration tests
-3. Implement handler
-4. Add validation
-5. Document in OpenAPI/Swagger
-
-### New Component
-1. Define props interface
-2. Write unit tests
-3. Implement component
-4. Add Storybook story
-5. Document usage
-
----
-
-## Quick Reference
-
-| Task | Approach |
-|------|----------|
-| New feature | Plan → TDD → Review → Commit |
-| Bug fix | Reproduce → Fix → Verify → Commit |
-| Refactor | Tests → Incremental → Verify |
-| API change | Types → Tests → Implement → Document |
-| Build error | Read → Isolate → Fix → Verify |
