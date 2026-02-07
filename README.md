@@ -32,22 +32,51 @@ Based on [everything-claude-code](https://github.com/affaan-m/everything-claude-
 
 ## Quick Start
 
-### Copy to Your Project
+### Global Install (Rules + Skills — apply to ALL projects)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/everything-cursor.git
-cp -r everything-cursor/.cursor your-project/.cursor
+git clone https://github.com/jy315189/everything-cursor.git
+cd everything-cursor
+
+# Windows PowerShell
+Copy-Item -Path ".cursor\rules" -Destination "$env:USERPROFILE\.cursor\rules" -Recurse -Force
+Copy-Item -Path ".cursor\skills" -Destination "$env:USERPROFILE\.cursor\skills" -Recurse -Force
+
+# macOS/Linux
+cp -r .cursor/rules ~/.cursor/rules
+cp -r .cursor/skills ~/.cursor/skills
 ```
 
-### Or Copy Only What You Need
+### Per-Project Init (Agents + Commands — required per project)
+
+> **Important**: Cursor only supports Agents and Commands at the **project level**. They must be copied into each project's `.cursor/` directory.
+
+```powershell
+# Run init script from your project directory
+& "D:\projectse\everything-cursor\init.ps1"
+
+# Or with force-overwrite
+& "D:\projectse\everything-cursor\init.ps1" -Force
+```
+
+Or manually:
 
 ```bash
-# Just the rules (always-on coding standards)
-cp -r everything-cursor/.cursor/rules your-project/.cursor/rules
-
-# Just the agents (specialized AI assistants)
+# Copy agents and commands to your project
 cp -r everything-cursor/.cursor/agents your-project/.cursor/agents
+cp -r everything-cursor/.cursor/commands your-project/.cursor/commands
 ```
+
+### What Goes Where
+
+| Module | Install Location | Why |
+|--------|-----------------|-----|
+| Rules | **Global** `~/.cursor/rules/` | Applies to all projects automatically |
+| Skills | **Global** `~/.cursor/skills/` | Available in all projects via @skills/ |
+| Agents | **Per-project** `.cursor/agents/` | Cursor only reads agents from project directory |
+| Commands | **Per-project** `.cursor/commands/` | Cursor only reads commands from project directory |
+| Hooks | **Per-project** `.cursor/hooks/` | Project-specific quality gates |
+| MCP | **Per-project** `.cursor/mcp.json` | Project-specific tool integrations |
 
 ---
 

@@ -32,25 +32,50 @@
 
 ## 快速安装
 
-### 完整复制到项目
+### 第一步：全局安装（Rules + Skills — 一次安装，所有项目生效）
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/everything-cursor.git
-cp -r everything-cursor/.cursor 你的项目路径/.cursor
+git clone https://github.com/jy315189/everything-cursor.git
+cd everything-cursor
+
+# Windows PowerShell
+Copy-Item -Path ".cursor\rules" -Destination "$env:USERPROFILE\.cursor\rules" -Recurse -Force
+Copy-Item -Path ".cursor\skills" -Destination "$env:USERPROFILE\.cursor\skills" -Recurse -Force
+
+# macOS/Linux
+cp -r .cursor/rules ~/.cursor/rules
+cp -r .cursor/skills ~/.cursor/skills
 ```
 
-### 按需复制
+### 第二步：每个项目初始化（Agents + Commands — 必须逐项目安装）
+
+> **重要**：Cursor 的 Agents 和 Commands **仅支持项目级别**，不支持全局。必须复制到每个项目的 `.cursor/` 目录中才能使用 `@orchestrator` 等功能。
+
+```powershell
+# 在你的项目根目录下运行初始化脚本
+& "D:\projectse\everything-cursor\init.ps1"
+
+# 强制覆盖已有配置
+& "D:\projectse\everything-cursor\init.ps1" -Force
+```
+
+或手动复制：
 
 ```bash
-# 只要规则（始终生效的编码规范）
-cp -r everything-cursor/.cursor/rules 你的项目/.cursor/rules
-
-# 只要智能体（专项 AI 助手）
 cp -r everything-cursor/.cursor/agents 你的项目/.cursor/agents
-
-# 只要技能（深度领域知识）
-cp -r everything-cursor/.cursor/skills 你的项目/.cursor/skills
+cp -r everything-cursor/.cursor/commands 你的项目/.cursor/commands
 ```
+
+### 安装位置说明
+
+| 模块 | 安装位置 | 原因 |
+|------|---------|------|
+| Rules | **全局** `~/.cursor/rules/` | 所有项目自动生效 |
+| Skills | **全局** `~/.cursor/skills/` | 所有项目可通过 @skills/ 引用 |
+| Agents | **项目级** `.cursor/agents/` | Cursor 仅从项目目录读取 Agent |
+| Commands | **项目级** `.cursor/commands/` | Cursor 仅从项目目录读取命令 |
+| Hooks | **项目级** `.cursor/hooks/` | 项目专属质量门禁 |
+| MCP | **项目级** `.cursor/mcp.json` | 项目专属工具集成 |
 
 ---
 
