@@ -137,8 +137,8 @@ function Install-Global {
         New-Item -ItemType Directory -Path $GlobalDir -Force | Out-Null
     }
 
-    Copy-Module -Name "Rules" -Src "$SourceDir\.cursor\rules" -Dst "$GlobalDir\rules" -IsForce $Force.IsPresent
-    Copy-Module -Name "Skills" -Src "$SourceDir\.cursor\skills" -Dst "$GlobalDir\skills" -IsForce $Force.IsPresent
+    $null = Copy-Module -Name "Rules" -Src "$SourceDir\.cursor\rules" -Dst "$GlobalDir\rules" -IsForce $Force.IsPresent
+    $null = Copy-Module -Name "Skills" -Src "$SourceDir\.cursor\skills" -Dst "$GlobalDir\skills" -IsForce $Force.IsPresent
 
     Write-Host ""
     Write-Ok "Global install complete. Rules + Skills apply to ALL projects."
@@ -154,9 +154,9 @@ function Install-Project {
         New-Item -ItemType Directory -Path "$TargetDir\.cursor" -Force | Out-Null
     }
 
-    Copy-Module -Name "Agents" -Src "$SourceDir\.cursor\agents" -Dst "$TargetDir\.cursor\agents" -IsForce $Force.IsPresent
-    Copy-Module -Name "Commands" -Src "$SourceDir\.cursor\commands" -Dst "$TargetDir\.cursor\commands" -IsForce $Force.IsPresent
-    Copy-Module -Name "Hooks" -Src "$SourceDir\.cursor\hooks" -Dst "$TargetDir\.cursor\hooks" -IsForce $Force.IsPresent
+    $null = Copy-Module -Name "Agents" -Src "$SourceDir\.cursor\agents" -Dst "$TargetDir\.cursor\agents" -IsForce $Force.IsPresent
+    $null = Copy-Module -Name "Commands" -Src "$SourceDir\.cursor\commands" -Dst "$TargetDir\.cursor\commands" -IsForce $Force.IsPresent
+    $null = Copy-Module -Name "Hooks" -Src "$SourceDir\.cursor\hooks" -Dst "$TargetDir\.cursor\hooks" -IsForce $Force.IsPresent
 
     # MCP: only copy if not exists (never overwrite without -Force)
     if (-not (Test-Path "$TargetDir\.cursor\mcp.json")) {
